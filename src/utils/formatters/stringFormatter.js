@@ -1,0 +1,1 @@
+export const pickJwtSignature = (token) => {  return token.split('.')[2]; }

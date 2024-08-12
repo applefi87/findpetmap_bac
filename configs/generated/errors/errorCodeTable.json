@@ -1,0 +1,98 @@
+{
+  "400": {
+    "frontCode": 400,
+    "level": "error",
+    "HTTPCode": 400,
+    "logExtra": false
+  },
+  "403": {
+    "frontCode": 403,
+    "level": "log",
+    "HTTPCode": 403,
+    "logExtra": false
+  },
+  "404": {
+    "frontCode": 404,
+    "level": "log",
+    "HTTPCode": 404,
+    "logExtra": true
+  },
+  "422": {
+    "frontCode": 422,
+    "level": "log",
+    "HTTPCode": 422,
+    "logExtra": false
+  },
+  "451": {
+    "frontCode": 451,
+    "level": "log",
+    "HTTPCode": 451,
+    "logExtra": false
+  },
+  "500": {
+    "frontCode": 500,
+    "level": "emergency",
+    "HTTPCode": 500,
+    "logExtra": false
+  },
+  "504": {
+    "frontCode": 504,
+    "level": "emergency",
+    "HTTPCode": 504,
+    "logExtra": false
+  },
+  "1000": {
+    "frontCode": 500,
+    "level": "emergency",
+    "HTTPCode": 500,
+    "logExtra": false
+  },
+  "1010": {
+    "frontCode": 500,
+    "level": "emergency",
+    "HTTPCode": 500,
+    "logExtra": false
+  },
+  "1011": {
+    "frontCode": 500,
+    "level": "emergency",
+    "HTTPCode": 500,
+    "logExtra": false
+  },
+  "1040": {
+    "frontCode": 500,
+    "level": "emergency",
+    "HTTPCode": 500,
+    "logExtra": false
+  },
+  "1100": {
+    "frontCode": 500,
+    "level": "emergency",
+    "HTTPCode": 500,
+    "logExtra": false
+  },
+  "2001": {
+    "frontCode": 500,
+    "level": "error",
+    "HTTPCode": 500,
+    "logExtra": false
+  },
+  "2051": {
+    "frontCode": 2051,
+    "level": "error",
+    "HTTPCode": 500,
+    "logExtra": false
+  },
+  "5001": {
+    "frontCode": 5001,
+    "level": "emergency",
+    "HTTPCode": 500,
+    "logExtra": false
+  },
+  "null": {
+    "frontCode": 0,
+    "level": null,
+    "HTTPCode": 0,
+    "logExtra": false
+  }
+}
