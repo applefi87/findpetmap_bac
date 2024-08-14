@@ -13,10 +13,10 @@ export default (resourceType, selectString = null) => {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) throw new ValidationObjectError("noFound")
     let resourceModel
     const finalSelectSrting = selectString ? (selectString + " user") : undefined
-    // switch (resourceType) {
-    //   case "Article":
-    //     resourceModel = Article
-    //     break;
+    switch (resourceType) {
+      case "Article":
+        resourceModel = Article
+        break;
     //   case "Comment":
     //     resourceModel = Comment
     //     break;
@@ -27,10 +27,10 @@ export default (resourceType, selectString = null) => {
     //     break;
     //   default:
     //     throw new UnknownError(null, "middlewares getResourseAndIsOwner no unknown resourceType")
-    // }
-    // const resource = await resourceModel.findById(req.params.id, finalSelectSrting).where("user").equals(req.user._id.toString()).where("isDelete").equals(false);
-    // if (!resource) throw new ValidationObjectError("noFound")
-    // req.resource = resource
+    }
+    const resource = await resourceModel.findById(req.params.id, finalSelectSrting).where("user").equals(req.user._id.toString()).where("isDelete").equals(false);
+    if (!resource) throw new ValidationObjectError("noFound")
+    req.resource = resource
     next()
   }
 }

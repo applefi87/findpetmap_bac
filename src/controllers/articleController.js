@@ -43,6 +43,49 @@ export async function createArticle(req, res) {
   }
 }
 
+export async function updateArticle(req, res) {
+  const { id } = req.params;
+  const { petType, color, content, location, lostDate, lostCityCode, lostDistrict, hasReward, rewardAmount, hasMicrochip } = req.body;
+
+  // Populate updateData only with fields that are provided in req.body
+  const updateData = {
+    user: req.user._id,
+    petType,
+    color,
+    content,
+    location,
+    lostDate,
+    lostCityCode,
+    lostDistrict,
+    hasReward,
+    rewardAmount,
+    hasMicrochip
+  }
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+
+    // Use findByIdAndUpdate with $set to update only the provided fields
+    const updatedArticle = await Article.findByIdAndUpdate(
+      id,
+      { $set: updateData },
+      { new: true, session }
+    );
+
+    if (!updatedArticle) {
+      await session.abortTransaction();
+      return res.status(404).json({ message: 'Article not found' });
+    }
+
+    ResponseHandler.successObject(res, "articleUpdated", updatedArticle, 200);
+    await session.commitTransaction();
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    await session.endSession();
+  }
+}
 // export const getArticleDetail = async (req, res, next) => {
 //   const strArticleId = req.params.id
 //   const strReqUserId = req.user?._id.toString()
