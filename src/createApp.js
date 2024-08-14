@@ -7,6 +7,7 @@ import rateLimit from 'express-rate-limit';
 // import mongoSanitize from 'express-mongo-sanitize';
 import emailRouter from "./routes/emailRoute.js"
 import userRouter from "./routes/userRoute.js"
+import articleRouter from "./routes/articleRoute.js"
 // import imageRouter from "./routes/imageRoute.js"
 import ResponseHandler from './middlewares/ResponseHandler.js';
 import createI18nMiddleware from './middlewares/createI18nMiddleware.js';
@@ -89,6 +90,7 @@ const createApp = () => {
 
   app.use('/user', userRouter);
   app.use('/email', emailRouter);
+  app.use('/article', articleRouter);
   // app.use('/image', imageRouter);
 
   return app;

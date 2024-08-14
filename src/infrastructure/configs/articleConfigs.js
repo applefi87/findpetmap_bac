@@ -1,11 +1,24 @@
-const title = {
-  minLength: 5,
-  maxLength: 100
-};
+const petType = ['貓', '狗']
+
+const catColorEnum = [
+  // Solid Colors
+  '黑', '白', '灰', '橘', '咖啡',
+  // Mixed Colors
+  '黑白', '灰白', '橘白',
+  // Patterned Colors
+  '玳瑁', '花斑', '虎斑'
+];
+
+const dogColorEnum = [
+  // Solid Colors
+  '黑', '白', '灰', '米黃', '棕', '咖啡',
+  // Patterned Colors
+  '斑點', '花斑', '虎斑'
+];
 
 //html的部分
 const content = {
-  minLength: 10,
+  minLength: 5,
   maxLength: 30000
 };
 //移除html後的部分  目前不管
@@ -30,4 +43,4 @@ const thumbnail = {
 
 
 
-export default { title, content, previewContent, thumbnail };
+export default { petType, catColorEnum,dogColorEnum ,content };

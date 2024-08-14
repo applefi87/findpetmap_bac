@@ -12,7 +12,7 @@ class EmailService {
       port: 587,
       auth: {
         type: 'OAuth2',
-        user: process.env.GMAIL_USERNAME,
+        user: process.env.GMAIL,
         clientId: process.env.OAUTH_CLIENT_ID,
         clientSecret: process.env.OAUTH_CLIENT_SECRET,
         refreshToken: process.env.OAUTH_REFRESH_TOKEN,

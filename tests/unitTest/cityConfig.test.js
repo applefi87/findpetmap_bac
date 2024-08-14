@@ -1,6 +1,6 @@
 // cityCodes.test.js
 import { expect } from 'chai';
-import { cityCodeToNameMap, cityNameToCodeMap } from '../../src/infrastructure/configs/cityConfig.js';
+import { cityCodeToNameMap, cityNameToCodeMap } from '../../src/infrastructure/configs/cityConfigs.js';
 
 describe('City Codes', () => {
     it('should have correct mapping for cityCodeToNameMap', () => {
