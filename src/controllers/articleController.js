@@ -119,53 +119,12 @@ export const getArticleDetail = async (req, res, next) => {
   }
 };
 
-// export async function updateArticleAndSaveImages(req, res) {
-//   const targetArticle = req.resource
-//   targetArticle.thumbnail = req.articleTextData.thumbnail
-//   targetArticle.title = req.articleTextData.title;
-//   targetArticle.content = req.articleTextData.content;
-//   targetArticle.previewContent = req.articleTextData.previewContent;
-//   //更新出文章圖片清單
-//   const imageFullPathList = extractUniqueImageUrlsFromContent(targetArticle.content);
-//   const session = await mongoose.startSession();
-//   try {
-//     session.startTransaction();
-//     await targetArticle.save({ session });
+export const searchArticleList = async (req, res, next) => {
+  const skip = req.body.skip
+  const limit = req.body.limit
+  const validatedSkip = (typeof skip === "number" && skip >= 0) ? skip : 0
+  const validatedLimit = limit < 50 && limit > 5 ? limit : 20
 
-//     //創文章後，要把草稿的圖片抓取並轉給 ArticleImageList 紀錄
-//     //創文章，也是先建立文章在處理這部分，所以直接更新就好
-//     //至於相關清除，放articleController處理
-//     const strArticleId = targetArticle._id.toString()
-
-//     let articleUpdateDraft = await articleUpdateDraftService.getArticleUpdateDraftByArticle(strArticleId, "imageList", true)
-//     const haveArticleUpdateDraft = articleUpdateDraft
-//     // 空的就是跑個流程，沒必要特地建
-//     if (!haveArticleUpdateDraft) { articleUpdateDraft = { imageList: [] } }
-//     const finalImageList = await imageService.getFinalImageListAndUpdateImage(imageFullPathList, articleUpdateDraft.imageList, session)
-//     await articleImageListService.handleUpdateOneArticleImageListByArticle(strArticleId, finalImageList, session)
-//     if (haveArticleUpdateDraft) {
-//       await articleUpdateDraftService.deleteOneArticleUpdateDraftByArticle(strArticleId, session)
-//     }
-//     ResponseHandler.successObject(res, "articleUpdated", { title: req.articleTextData.title, content: req.articleTextData.content, previewContent: req.articleTextData.previewContent, thumbnail: req.articleTextData.thumbnail });
-//     await session.commitTransaction();
-//   } catch (error) {
-//     await session.abortTransaction();
-//     throw error;
-//   } finally {
-//     await session.endSession();
-//   }
-
-// }
-
-
-// };
-
-// // 首頁瀏覽最新文章，需要附帶版的資訊(類似dcard,也許之後會有透過文章id清單去抓取的功能)
-// export const getArticleListWithBoard = async (req, res, next) => {
-//   const skip = req.body.skip
-//   const limit = req.body.limit
-//   const validatedSkip = (typeof skip === "number" && skip >= 0) ? skip : 0
-//   const validatedLimit = limit < 50 && limit > 5 ? limit : 20
-//   const formatedArticleListWithBoard = await articleService.getFormatedArticleListWithBoard(req.interfaceLanguage, {}, req.body.lang, validatedSkip, validatedLimit, req.user?._id.toString())
-//   ResponseHandler.successObject(res, "", { articleList: formatedArticleListWithBoard });
-// };
+  const formatedArticleListWithBoard = await articleService.getArticleList(req.body, validatedSkip, validatedLimit, req.user?._id.toString())
+  ResponseHandler.successObject(res, "", { articleList: formatedArticleListWithBoard });
+};

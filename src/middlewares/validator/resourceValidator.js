@@ -19,8 +19,10 @@ import { languageValues } from '../../infrastructure/configs/languageOptions.js'
 const { rules, validateByRules } = anValidator;
 // const window = new JSDOM('').window;
 // const DOMPurify = createDOMPurify(window);
+
 function validAllFieldsPresent(fields) {
   for (const key in fields) {
+    // 因為有些選項是 false 依樣是有填
     if (fields[key] === null || fields[key] === undefined) {
       throw new ValidationObjectError(`${key}Invalid`);
     }
@@ -28,11 +30,11 @@ function validAllFieldsPresent(fields) {
 }
 
 export const validateCreateArticle = async (req, res, next) => {
-  const { petType, color, content, location, lostDate, lostCityCode, lostDistrict, hasReward, rewardAmount } = req.body;
-  const fields = { petType, color, content, location, lostDate, lostCityCode, lostDistrict, hasReward };
-  validAllFieldsPresent(fields);
+  const { petType, color, content, location, lostDate, lostCityCode, lostDistrict, hasReward, rewardAmount, hasMicrochip } = req.body;
 
-  // 這區邏輯混亂，理想是能夠自定義必填+彈性調整，但目前modele依然寫死，所以就不管，之後再規劃
+  const mustInputFields = { petType, color, content, location, lostDate, lostCityCode, lostDistrict, hasReward, hasMicrochip };
+  validAllFieldsPresent(mustInputFields);
+
   articleValidator.validatePetType(petType)
   articleValidator.validateColor(petType, color)
   articleValidator.validateLocation(location)
@@ -43,25 +45,16 @@ export const validateCreateArticle = async (req, res, next) => {
   articleValidator.validateContent(content)
 
   articleValidator.validateRewardAmount(hasReward, rewardAmount);
-  articleValidator.validateNotRequiredInput(req.body)
+  articleValidator.validateHasMicrochip(hasMicrochip);
   next()
 };
 
 export const validateUpdateArticle = async (req, res, next) => {
-  const { privacy, title, content } = req.body;
-  // validatePrivacy(privacy)
-  //標題與內容在這處理
-  req.articleTextData = await validateTitleContentAndGetFormated(title, content)
-  // await validateBoardExist(board)
-  next()
-};
+  const { petType, color, content, location, lostDate, lostCityCode, lostDistrict, hasReward, rewardAmount, hasMicrochip } = req.body;
 
-export const validateSearchArticleList = async (req, res, next) => {
-  const { petType, color ,location, lostDate, lostCityCode, lostDistrict, hasReward, rewardAmount } = req.body;
-  const fields = { petType, color, content, location, lostDate, lostCityCode, lostDistrict, hasReward };
-  validAllFieldsPresent(fields);
+  const mustInputFields = { petType, color, content, location, lostDate, lostCityCode, lostDistrict, hasReward,hasMicrochip };
+  validAllFieldsPresent(mustInputFields);
 
-  // 這區邏輯混亂，理想是能夠自定義必填+彈性調整，但目前modele依然寫死，所以就不管，之後再規劃
   articleValidator.validatePetType(petType)
   articleValidator.validateColor(petType, color)
   articleValidator.validateLocation(location)
@@ -72,7 +65,25 @@ export const validateSearchArticleList = async (req, res, next) => {
   articleValidator.validateContent(content)
 
   articleValidator.validateRewardAmount(hasReward, rewardAmount);
-  articleValidator.validateNotRequiredInput(req.body)
+  articleValidator.validateHasMicrochip(hasMicrochip);
+  next()
+};
+
+export const validateSearchArticleList = async (req, res, next) => {
+  const { petType, color, location, lostDate, lostCityCode, lostDistrict, hasReward, rewardAmount, hasMicrochip } = req.body;
+  // 查詢這幾項必填
+  const mustInputFields = { petType, color, location };
+  validAllFieldsPresent(mustInputFields);
+
+  articleValidator.validatePetType(petType)
+  articleValidator.validateColor(petType, color)
+  articleValidator.validateLocation(location)
+  articleValidator.validateLostDate(lostDate);
+  articleValidator.validateLostCityCode(lostCityCode);
+  articleValidator.validateLostDistrict(lostCityCode, lostDistrict);
+
+  articleValidator.validateRewardAmount(hasReward, rewardAmount);
+  articleValidator.validateHasMicrochip(hasMicrochip);
   next()
 };
 

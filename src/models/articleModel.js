@@ -8,24 +8,6 @@ import DatabaseError from "../infrastructure/errors/DatabaseError.js"
 // const catBreedEnum = ['波斯貓', '暹羅貓', '緬因貓', '孟加拉貓'];
 // const dogBreedEnum = ['拉布拉多', '比格犬', '貴賓犬', '鬥牛犬'];
 
-const catColorEnum = [
-  // Solid Colors
-  '黑', '白', '灰', '橘', '咖啡',
-  // Mixed Colors
-  '黑白', '灰白', '橘白',
-  // Patterned Colors
-  '玳瑁', '花斑', '虎斑'
-];
-
-
-const dogColorEnum = [
-  // Solid Colors
-  '黑', '白', '灰', '米黃', '棕', '咖啡',
-  // Patterned Colors
-  '斑點', '花斑', '虎斑'
-];
-
-
 const pointSchema = new mongoose.Schema({
   type: {
     type: String,
@@ -82,7 +64,7 @@ const schema = new mongoose.Schema({
       validator: function (value) {
         return articleValidator.validateColor(this.petType, value);
       },
-      message: props => `${props.value} 不是所選寵物類型的有效品種`
+      message: props => `${props.value} 不是所選寵物類型的有效顏色`
     },
     required: true
   },

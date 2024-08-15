@@ -435,3 +435,217 @@ describe('ArticleController Update Tests', function () {
     });
   });
 });
+
+describe('ArticleController delete Tests', function () {
+  this.timeout(10000); // Increase timeout for the test suite
+  let token;
+  let userId;
+  let articleId;
+
+  before(async () => {
+    // Your setup logic here, if needed
+  });
+
+  after(async () => {
+    // Your teardown logic here, if needed
+  });
+
+  beforeEach(async () => {
+    const collections = await mongoose.connection.db?.collections();
+    if (collections) {
+      for (let collection of collections) {
+        await collection.deleteMany({});
+      }
+    }
+    
+    // Create a test user
+    const user = new User({ account: 'testaccount', password: bcrypt.hashSync(pwd, 8), nickname: 'nnnname', role: '1', safety: { nextTryAvailableAt: Date.now() } });
+    await user.save();
+    userId = user.id.toString();
+
+    // Log in to get JWT token
+    const res = await request(app)
+      .post('/user/login')
+      .send({ account: 'testaccount', password: pwd });
+    token = res.body.data.token;
+
+    // Create a test article
+    const article1 = new Article({
+      ...articleValidData,
+      userId: userId,
+    });
+    await article1.save();
+    articleId = article1.id.toString();
+
+        // Create a test article
+        const article1 = new Article({
+          ...articleValidData,
+          userId: userId,
+        });
+        await article1.save();
+        articleId = article1.id.toString();
+  });
+
+  const testCases = [
+    {
+      name: 'valid data',
+      data: {
+        ...articleValidData,
+        isDelete: true,
+        createdAt: new Date() - 24 * 60 * 60 * 1000,
+        updatedAt: new Date() - 24 * 60 * 60 * 1000
+      },
+      expectedStatus: 200,
+      expectedIsDelete: false,
+    },
+    // Missing required fields
+    {
+      name: 'missing required field "lostDate"',
+      data: {
+        ...articleValidData,
+        lostDate: undefined,
+        isDelete: true,
+        createdAt: new Date() - 24 * 60 * 60 * 1000,
+        updatedAt: new Date() - 24 * 60 * 60 * 1000
+      },
+      expectedStatus: 422,
+    },
+    {
+      name: 'missing required field "petType"',
+      data: {
+        ...articleValidData,
+        petType: undefined,
+        isDelete: true,
+        createdAt: new Date() - 24 * 60 * 60 * 1000,
+        updatedAt: new Date() - 24 * 60 * 60 * 1000
+      },
+      expectedStatus: 422,
+    },
+
+    // Invalid data types
+    {
+      name: 'invalid data type for "rewardAmount"',
+      data: {
+        ...articleValidData,
+        rewardAmount: 'five thousand',
+        isDelete: true,
+        createdAt: new Date() - 24 * 60 * 60 * 1000,
+        updatedAt: new Date() - 24 * 60 * 60 * 1000
+      },
+      expectedStatus: 422,
+    },
+    {
+      name: 'invalid data type for "location.coordinates"',
+      data: {
+        ...articleValidData,
+        location: {
+          type: 'Point',
+          coordinates: ['121.532328', '25.040792'] // Strings instead of numbers
+        },
+        isDelete: true,
+        createdAt: new Date() - 24 * 60 * 60 * 1000,
+        updatedAt: new Date() - 24 * 60 * 60 * 1000
+      },
+      expectedStatus: 422,
+    },
+
+    // Edge Cases
+    {
+      name: 'minimum valid rewardAmount',
+      data: {
+        ...articleValidData,
+        rewardAmount: 0, // Testing the minimum valid value
+        isDelete: true,
+        createdAt: new Date() - 24 * 60 * 60 * 1000,
+        updatedAt: new Date() - 24 * 60 * 60 * 1000
+      },
+      expectedStatus: 200,
+      expectedIsDelete: false,
+    },
+    {
+      name: 'maximum string length for "content"',
+      data: {
+        ...articleValidData,
+        content: 'A'.repeat(articleConfigs.content.maxLength), // Maximum allowed content length
+        isDelete: true,
+        createdAt: new Date() - 24 * 60 * 60 * 1000,
+        updatedAt: new Date() - 24 * 60 * 60 * 1000
+      },
+      expectedStatus: 200,
+      expectedIsDelete: false,
+    },
+
+    // Invalid enum values
+    {
+      name: 'invalid enum value for "petType"',
+      data: {
+        ...articleValidData,
+        petType: 'dragon', // Invalid pet type
+        isDelete: true,
+        createdAt: new Date() - 24 * 60 * 60 * 1000,
+        updatedAt: new Date() - 24 * 60 * 60 * 1000
+      },
+      expectedStatus: 422,
+    },
+    {
+      name: 'invalid enum value for "lostCityCode"',
+      data: {
+        ...articleValidData,
+        lostCityCode: 'Z', // Invalid city code
+        isDelete: true,
+        createdAt: new Date() - 24 * 60 * 60 * 1000,
+        updatedAt: new Date() - 24 * 60 * 60 * 1000
+      },
+      expectedStatus: 422,
+    },
+
+    // Logical inconsistencies
+    {
+      name: 'rewardAmount without hasReward being true',
+      data: {
+        ...articleValidData,
+        hasReward: false,
+        rewardAmount: 5000, // Should not allow a reward amount if hasReward is false
+        isDelete: true,
+        createdAt: new Date() - 24 * 60 * 60 * 1000,
+        updatedAt: new Date() - 24 * 60 * 60 * 1000
+      },
+      expectedStatus: 422,
+    },
+    {
+      name: 'hasMicrochip true but no rewardAmount',
+      data: {
+        ...articleValidData,
+        hasMicrochip: true,
+        rewardAmount: 0, // Testing a scenario where a microchip is present but no reward
+        isDelete: true,
+        createdAt: new Date() - 24 * 60 * 60 * 1000,
+        updatedAt: new Date() - 24 * 60 * 60 * 1000
+      },
+      expectedStatus: 200,
+      expectedIsDelete: false,
+    },
+  ];
+
+  testCases.forEach(({ name, data, expectedStatus, expectedIsDelete }) => {
+    it(`updateArticle - ${name}`, async () => {
+      const res = await request(app)
+        .put(`/article/${articleId}/update`) // Adjust to your update route
+        .set('Authorization', `Bearer ${token}`)
+        .send(data);
+
+      expect(res.status).to.equal(expectedStatus);
+
+      if (expectedStatus === 200) {
+        const updatedArticle = await Article.findById(articleId).lean();
+        updatedArticle.lostDate = new Date(updatedArticle.lostDate).toLocaleDateString('en-CA');
+        const articleValidDataWithoutLocation = { ...data };
+        expect(updatedArticle).to.include(removeNotEditableProperties(articleValidDataWithoutLocation));
+        expect(updatedArticle).to.have.property('location').that.deep.equals(data.location);
+        expect(updatedArticle.isDelete).to.equal(expectedIsDelete);
+        expect(updatedArticle.createdAt).to.not.equal(data.createdAt);
+        expect(updatedArticle.updatedAt).to.not.equal(data.updatedAt);
+      }
+    });
+  });
+});

@@ -1,6 +1,6 @@
+// 這裡都是可接受沒值，所以引用者要另外判斷
+
 import anValidator from 'an-validator';
-import User from '../../models/userModel.js'
-import validateAndFormatEmail from '../../infrastructure/utils/validateAndFormatEmail.js'
 import articleConfigs from "../../infrastructure/configs/articleConfigs.js"
 import { cityCodeList, cityCodeToAreaList } from "../../infrastructure/configs/cityConfigs.js"
 
@@ -9,12 +9,14 @@ import ValidationObjectError from '../../infrastructure/errors/ValidationObjectE
 const { rules, validateByRules } = anValidator;
 
 export const validatePetType = (petType) => {
+  if (checkNoValue(petType)) { return }
   if (!articleConfigs.petType.includes(petType)) {
     throw new ValidationObjectError(`Invalid pet type: ${petType}`);
   }
 };
 
 export const validateColor = (petType, color) => {
+  if (checkNoValue(color)) { return }
   validatePetType(petType)
   if (petType === '貓' && articleConfigs.catColorEnum.includes(color)) {
     return
@@ -25,6 +27,7 @@ export const validateColor = (petType, color) => {
 };
 
 export const validateCoordinate = (coordinate) => {
+  if (checkNoValue(coordinate)) { return }
   if (Array.isArray(coordinate) && coordinate.length === 2) {
     const [longitude, latitude] = coordinate;
     if (typeof longitude === 'number' && typeof latitude === 'number') {
@@ -37,6 +40,7 @@ export const validateCoordinate = (coordinate) => {
 };
 
 export const validateLocation = (location) => {
+  if (checkNoValue(location)) { return }
   if (location && typeof location === "object") {
     const { type, coordinates } = location;
     if (type === 'Point') {
@@ -46,11 +50,8 @@ export const validateLocation = (location) => {
   throw new ValidationObjectError('locationInvalid');
 };
 
-export const validateNotRequiredInput = (reqBody) => {
-  validateBooleanInputColumns(reqBody);
-};
-
 export const validateLostDate = (lostDate) => {
+  if (checkNoValue(lostDate)) { return }
   if (lostDate) {
     const lostDateObj = new Date(lostDate);
     if (!isNaN(lostDateObj) && lostDateObj.toString() !== 'Invalid Date') {
@@ -65,12 +66,14 @@ export const validateLostDate = (lostDate) => {
 };
 
 export const validateLostCityCode = (lostCityCode) => {
+  if (checkNoValue(lostCityCode)) { return }
   if (!cityCodeList.includes(lostCityCode)) {
     throw new ValidationObjectError(`lostCityCodeInvalid`);
   }
 };
 
 export const validateLostDistrict = (lostCityCode, lostDistrict) => {
+  if (checkNoValue(lostCityCode)) { return }
   validateLostCityCode(lostCityCode)
   if (lostDistrict) {
     if (cityCodeToAreaList[lostCityCode].includes(lostDistrict)) {
@@ -81,12 +84,29 @@ export const validateLostDistrict = (lostCityCode, lostDistrict) => {
 };
 
 export const validateRewardAmount = (hasReward, rewardAmount) => {
+  if (checkNoValue(rewardAmount)) { return }
   if (!hasReward && rewardAmount) throw new ValidationObjectError('rewardAmount');
   if (typeof rewardAmount !== 'number' || rewardAmount < 0) {
-    throw new ValidationObjectError('rewardAmount');
+    throw new ValidationObjectError('rewardAmountInvalid');
   }
 };
 
+export const validateHasMicrochip = (hasMicrochip) => {
+  if (typeof hasMicrochip !== 'boolean') {
+    throw new ValidationObjectError('hasMicrochipInvalid');
+  }
+};
+
+const articleContentLengthMin = articleConfigs.content.minLength
+const articleContentLengthMax = articleConfigs.content.maxLength
+
+export async function validateContent(content) {
+  if (checkNoValue(content)) { return }
+  const contentValidateResult = validateByRules(content, rules.createLengthBetweenRule(articleContentLengthMin, articleContentLengthMax))
+  if (!contentValidateResult.success) throw new ValidationObjectError("articleContentBetween", { min: articleContentLengthMin, max: articleContentLengthMax });
+}
+
+// 這個都是可接受沒有
 export const validateBooleanInputColumns = (reqBody) => {
   const keys = ['hasReward', 'hasMicrochip'];
   for (const key of keys) {
@@ -98,23 +118,6 @@ export const validateBooleanInputColumns = (reqBody) => {
   }
 };
 
-const articleContentLengthMin = articleConfigs.content.minLength
-const articleContentLengthMax = articleConfigs.content.maxLength
-
-export async function validateContent(content) {
-  const contentValidateResult = validateByRules(content, rules.createLengthBetweenRule(articleContentLengthMin, articleContentLengthMax))
-  if (!contentValidateResult.success) throw new ValidationObjectError("articleContentBetween", { min: articleContentLengthMin, max: articleContentLengthMax });
+function checkNoValue(value) {
+  return (value !== null && value !== undefined)
 }
-// export async function validateRoleCreation(req) {
-//   try {
-//     const role = req.body.role;
-//     if (!(role?.length > 0)) throw new ValidationError('User role is empty');
-//     if (role != 'user') {
-//       const success = await Group.findOne({ role, users: req.body.account });
-//       if (!success) throw new ValidationError('not authorized to create this role');
-//     }
-//     return { success: true };
-//   } catch (error) {
-//     throw error;
-//   }
-// }
