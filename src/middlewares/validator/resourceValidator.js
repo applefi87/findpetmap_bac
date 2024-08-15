@@ -44,6 +44,7 @@ export const validateCreateArticle = async (req, res, next) => {
 
   articleValidator.validateContent(content)
 
+  articleValidator.validateHasReward(hasReward) 
   articleValidator.validateRewardAmount(hasReward, rewardAmount);
   articleValidator.validateHasMicrochip(hasMicrochip);
   next()
@@ -64,6 +65,7 @@ export const validateUpdateArticle = async (req, res, next) => {
 
   articleValidator.validateContent(content)
 
+  articleValidator.validateHasReward(hasReward) 
   articleValidator.validateRewardAmount(hasReward, rewardAmount);
   articleValidator.validateHasMicrochip(hasMicrochip);
   next()
@@ -82,6 +84,7 @@ export const validateSearchArticleList = async (req, res, next) => {
   articleValidator.validateLostCityCode(lostCityCode);
   articleValidator.validateLostDistrict(lostCityCode, lostDistrict);
 
+  articleValidator.validateHasReward(hasReward) 
   articleValidator.validateRewardAmount(hasReward, rewardAmount);
   articleValidator.validateHasMicrochip(hasMicrochip);
   next()

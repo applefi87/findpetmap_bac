@@ -9,7 +9,7 @@ import { createArticle, updateArticle, deleteArticle, getArticleDetail,searchArt
 const router = Router();
 
 router.post('/create', content('application/json'), auth.jwt("_id"), validateCreateArticle, createArticle);
-router.post('/update/:id', content('application/json'), auth.jwt("_id"), validateCreateArticle, getOwnerResourse("Article"), updateArticle);
+router.put('/update/:id', content('application/json'), auth.jwt("_id"), validateCreateArticle, getOwnerResourse("Article"), updateArticle);
 router.delete('/:id', auth.jwt("_id"), getOwnerResourse("Article", "isDelete"), deleteArticle);
 // 在瀏覽文章清單時，直接點擊而浮的視窗會用到這(類似dcard)
 router.get('/:id', content('application/json'), auth.onlyGetIdFromJWT, validateGetArticleDetail, getArticleDetail);

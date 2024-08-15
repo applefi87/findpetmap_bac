@@ -28,8 +28,8 @@ export const login = (sqlSelect) => {
 //       if (err || !data) {
 //         // console.log(err, info);
 //         if (info instanceof jsonwebtoken.JsonWebTokenError) {
-//           //這1用next而是res,因為方便控制401(自動觸發登出)
-//           return res.status(401).send({ success: false, message: { title: 'loginVerificationError' } })
+//           //這1用next而是res,因為方便控制426(自動觸發登出)
+//           return res.status(426).send({ success: false, message: { title: 'loginVerificationError' } })
 //         } else {
 //           throw err
 //         }
@@ -50,13 +50,13 @@ export const jwt = (sqlSelect) => {
         //但其他情況可以放別的判斷
         //目前邏輯: info === true 代表是回傳前端token過期，要請重打extend(大多數情況)
         if (info === true) {
-          //這不用next而是res,因為方便控制401(自動觸發登出)
+          //這不用next而是res,因為方便控制426(自動觸發登出)
           //確認這裡觸發正確更新token與無效token對應的流程，把正確更新token沒必要有文字的部分變乾淨(直接res不走customeError)
-          return res.status(401).send(401)
+          return res.status(426).send(426)
         } else if (info instanceof jsonwebtoken.JsonWebTokenError || !(err instanceof Error)) {
-          //驗證失敗，不需要前端再打一次extend再被失敗(其實是少數)，所以先佔用402讓前端一收到就立刻登出，但這是付款的，未來可能要改掉
+          //驗證失敗，不需要前端再打一次extend再被失敗(其實是少數)，所以先佔用401讓前端一收到就立刻登出，但這是付款的，未來可能要改掉
           // !(err instanceof Error) 是避免 err 為null 導致next(被通過)
-          return res.status(402).send(402)
+          return res.status(401).send(401)
         } else {
           //來這應該是系統異常錯誤，雖一樣無法下一步，但會被系統log
           return next(err)

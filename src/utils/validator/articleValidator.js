@@ -11,7 +11,7 @@ const { rules, validateByRules } = anValidator;
 export const validatePetType = (petType) => {
   if (checkNoValue(petType)) { return }
   if (!articleConfigs.petType.includes(petType)) {
-    throw new ValidationObjectError(`Invalid pet type: ${petType}`);
+    throw new ValidationObjectError(`petTypeInvalid`);
   }
 };
 
@@ -26,10 +26,9 @@ export const validateColor = (petType, color) => {
   throw new ValidationObjectError(`colorInvalid`);
 };
 
-export const validateCoordinate = (coordinate) => {
-  if (checkNoValue(coordinate)) { return }
-  if (Array.isArray(coordinate) && coordinate.length === 2) {
-    const [longitude, latitude] = coordinate;
+export const validateCoordinates = (coordinates) => {
+  if (Array.isArray(coordinates) && coordinates.length === 2) {
+    const [longitude, latitude] = coordinates;
     if (typeof longitude === 'number' && typeof latitude === 'number') {
       if (longitude >= -180 && longitude <= 180 && latitude >= -90 && latitude <= 90) {
         return
@@ -44,7 +43,7 @@ export const validateLocation = (location) => {
   if (location && typeof location === "object") {
     const { type, coordinates } = location;
     if (type === 'Point') {
-      return validateCoordinate(coordinates);
+      return validateCoordinates(coordinates);
     }
   }
   throw new ValidationObjectError('locationInvalid');
@@ -83,12 +82,21 @@ export const validateLostDistrict = (lostCityCode, lostDistrict) => {
   throw new ValidationObjectError('lostDistrictInvalid');
 };
 
-export const validateRewardAmount = (hasReward, rewardAmount) => {
-  if (checkNoValue(rewardAmount)) { return }
-  if (!hasReward && rewardAmount) throw new ValidationObjectError('rewardAmount');
-  if (typeof rewardAmount !== 'number' || rewardAmount < 0) {
-    throw new ValidationObjectError('rewardAmountInvalid');
+export const validateHasReward = (hasReward) => {
+  if (typeof hasReward !== 'boolean') {
+    throw new ValidationObjectError('hasRewardInvalid');
   }
+};
+
+export const validateRewardAmount = (hasReward, rewardAmount) => {
+  if (!hasReward) {
+    if (rewardAmount == 0) {
+      return
+    }
+  }else if (rewardAmount && typeof rewardAmount === 'number' && rewardAmount > 0) {
+    return
+  }
+  throw new ValidationObjectError('rewardAmountInvalid');
 };
 
 export const validateHasMicrochip = (hasMicrochip) => {
@@ -119,5 +127,5 @@ export const validateBooleanInputColumns = (reqBody) => {
 };
 
 function checkNoValue(value) {
-  return (value !== null && value !== undefined)
+  return (value === null || value === undefined)
 }

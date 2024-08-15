@@ -22,4 +22,8 @@ async function getArticleList(reqBody, skip, limit, strUserId) {
   return articleList
 }
 
-export default { createArticleSession, getArticleList }
+async function updateArticleSession(id, articleObj, session) {
+  return await articleRepository.findByIdAndUpdate(id, articleObj, { session })
+}
+
+export default { createArticleSession, getArticleList, updateArticleSession }

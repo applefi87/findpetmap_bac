@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-// import Article from '../models/articleModel.js';
+import Article from '../models/articleModel.js';
 // import Comment from '../models/commentModel.js';
 // import Reply from '../models/replyModel.js';
 // import BoardCreateRequest from '../models/boardCreateRequest.js';

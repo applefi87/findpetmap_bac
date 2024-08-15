@@ -62,19 +62,7 @@ export async function updateArticle(req, res) {
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
-
-    // Use findByIdAndUpdate with $set to update only the provided fields
-    const updatedArticle = await Article.findByIdAndUpdate(
-      id,
-      { $set: updateData },
-      { new: true, session }
-    );
-
-    if (!updatedArticle) {
-      await session.abortTransaction();
-      return res.status(404).json({ message: 'Article not found' });
-    }
-
+    const updatedArticle = await articleService.updateArticleSession(id, updateData, session);
     ResponseHandler.successObject(res, "articleUpdated", updatedArticle, 200);
     await session.commitTransaction();
   } catch (error) {

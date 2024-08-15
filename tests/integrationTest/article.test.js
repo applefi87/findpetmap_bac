@@ -95,6 +95,7 @@ describe('ArticleController Create Tests', function () {
       name: 'invalid data type for "rewardAmount"',
       data: {
         ...articleValidData,
+        hasReward:true,
         rewardAmount: 'five thousand',
         isDelete: true,
         createdAt: new Date() - 24 * 60 * 60 * 1000,
@@ -119,15 +120,16 @@ describe('ArticleController Create Tests', function () {
 
     // Edge Cases
     {
-      name: 'minimum valid rewardAmount',
+      name: 'rewardAmount should be greater than 0',
       data: {
         ...articleValidData,
+        hasReward:true,
         rewardAmount: 0, // Testing the minimum valid value
         isDelete: true,
         createdAt: new Date() - 24 * 60 * 60 * 1000,
         updatedAt: new Date() - 24 * 60 * 60 * 1000
       },
-      expectedStatus: 201,
+      expectedStatus: 422,
       expectedIsDelete: false,
     },
     {
@@ -179,20 +181,7 @@ describe('ArticleController Create Tests', function () {
         updatedAt: new Date() - 24 * 60 * 60 * 1000
       },
       expectedStatus: 422,
-    },
-    {
-      name: 'hasMicrochip true but no rewardAmount',
-      data: {
-        ...articleValidData,
-        hasMicrochip: true,
-        rewardAmount: 0, // Testing a scenario where a microchip is present but no reward
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000
-      },
-      expectedStatus: 201,
-      expectedIsDelete: false,
-    },
+    }
   ];
 
   testCases.forEach(({ name, data, expectedStatus, expectedIsDelete }) => {
@@ -251,7 +240,7 @@ describe('ArticleController Update Tests', function () {
         await collection.deleteMany({});
       }
     }
-    
+
     // Create a test user
     const user = new User({ account: 'testaccount', password: bcrypt.hashSync(pwd, 8), nickname: 'nnnname', role: '1', safety: { nextTryAvailableAt: Date.now() } });
     await user.save();
@@ -266,7 +255,7 @@ describe('ArticleController Update Tests', function () {
     // Create a test article
     const article = new Article({
       ...articleValidData,
-      userId: userId,
+      user: userId,
     });
     await article.save();
     articleId = article.id.toString();
@@ -340,7 +329,7 @@ describe('ArticleController Update Tests', function () {
       name: 'minimum valid rewardAmount',
       data: {
         ...articleValidData,
-        rewardAmount: 0, // Testing the minimum valid value
+        rewardAmount: 1, // Testing the minimum valid value
         isDelete: true,
         createdAt: new Date() - 24 * 60 * 60 * 1000,
         updatedAt: new Date() - 24 * 60 * 60 * 1000
@@ -397,29 +386,15 @@ describe('ArticleController Update Tests', function () {
         updatedAt: new Date() - 24 * 60 * 60 * 1000
       },
       expectedStatus: 422,
-    },
-    {
-      name: 'hasMicrochip true but no rewardAmount',
-      data: {
-        ...articleValidData,
-        hasMicrochip: true,
-        rewardAmount: 0, // Testing a scenario where a microchip is present but no reward
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000
-      },
-      expectedStatus: 200,
-      expectedIsDelete: false,
-    },
+    }
   ];
 
   testCases.forEach(({ name, data, expectedStatus, expectedIsDelete }) => {
     it(`updateArticle - ${name}`, async () => {
       const res = await request(app)
-        .put(`/article/${articleId}/update`) // Adjust to your update route
+        .put(`/article/update/${articleId}`) // Adjust to your update route
         .set('Authorization', `Bearer ${token}`)
         .send(data);
-
       expect(res.status).to.equal(expectedStatus);
 
       if (expectedStatus === 200) {
@@ -441,25 +416,33 @@ describe('ArticleController delete Tests', function () {
   let token;
   let userId;
   let articleId;
+  let otherArticleId;
 
   before(async () => {
-    // Your setup logic here, if needed
+    // Any setup logic if needed
   });
 
   after(async () => {
-    // Your teardown logic here, if needed
+    // Any teardown logic if needed
   });
 
   beforeEach(async () => {
+    // Clean up the database before each test
     const collections = await mongoose.connection.db?.collections();
     if (collections) {
       for (let collection of collections) {
         await collection.deleteMany({});
       }
     }
-    
+
     // Create a test user
-    const user = new User({ account: 'testaccount', password: bcrypt.hashSync(pwd, 8), nickname: 'nnnname', role: '1', safety: { nextTryAvailableAt: Date.now() } });
+    const user = new User({
+      account: 'testaccount',
+      password: bcrypt.hashSync(pwd, 8),
+      nickname: 'nnnname',
+      role: '1',
+      safety: { nextTryAvailableAt: Date.now() }
+    });
     await user.save();
     userId = user.id.toString();
 
@@ -469,182 +452,78 @@ describe('ArticleController delete Tests', function () {
       .send({ account: 'testaccount', password: pwd });
     token = res.body.data.token;
 
-    // Create a test article
-    const article1 = new Article({
+    // Create a test article for the user
+    const article = new Article({
       ...articleValidData,
-      userId: userId,
+      user: userId,
     });
-    await article1.save();
-    articleId = article1.id.toString();
+    await article.save();
+    articleId = article.id.toString();
 
-        // Create a test article
-        const article1 = new Article({
-          ...articleValidData,
-          userId: userId,
-        });
-        await article1.save();
-        articleId = article1.id.toString();
+    // Create another test article for a different user
+    const otherArticle = new Article({
+      ...articleValidData,
+      user: "66b86e8297709336ef263543",
+    });
+    await otherArticle.save();
+    otherArticleId = otherArticle.id.toString();
   });
 
   const testCases = [
+    // Case 1: Valid deletion by the article owner
     {
-      name: 'valid data',
-      data: {
-        ...articleValidData,
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000
-      },
+      name: 'valid deletion by the article owner',
+      articleId: () => articleId,
+      token: () => token,
       expectedStatus: 200,
-      expectedIsDelete: false,
+      shouldExistAfter: false,
     },
-    // Missing required fields
+    // Case 2: Attempt to delete article by a different user (not the owner)
     {
-      name: 'missing required field "lostDate"',
-      data: {
-        ...articleValidData,
-        lostDate: undefined,
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000
-      },
+      name: 'unauthorized deletion attempt by a different user',
+      articleId: () => otherArticleId,
+      token: () => token,
       expectedStatus: 422,
+      shouldExistAfter: true,
     },
+    // Case 3: Attempt to delete a non-existent article
     {
-      name: 'missing required field "petType"',
-      data: {
-        ...articleValidData,
-        petType: undefined,
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000
-      },
+      name: 'deletion attempt of a non-existent article',
+      articleId: () =>  "66b86e8297709336ef263543", // Random non-existent ID
+      token: () => token,
       expectedStatus: 422,
+      shouldExistAfter: false,
     },
-
-    // Invalid data types
+    // Case 4: Deletion attempt without a valid token
     {
-      name: 'invalid data type for "rewardAmount"',
-      data: {
-        ...articleValidData,
-        rewardAmount: 'five thousand',
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000
-      },
-      expectedStatus: 422,
+      name: 'deletion attempt without a valid token',
+      articleId: () => articleId,
+      token: () => null, // No token provided
+      expectedStatus: 401,
+      shouldExistAfter: true,
     },
+    // Case 5: Deletion attempt with an expired or invalid token
     {
-      name: 'invalid data type for "location.coordinates"',
-      data: {
-        ...articleValidData,
-        location: {
-          type: 'Point',
-          coordinates: ['121.532328', '25.040792'] // Strings instead of numbers
-        },
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000
-      },
-      expectedStatus: 422,
-    },
-
-    // Edge Cases
-    {
-      name: 'minimum valid rewardAmount',
-      data: {
-        ...articleValidData,
-        rewardAmount: 0, // Testing the minimum valid value
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000
-      },
-      expectedStatus: 200,
-      expectedIsDelete: false,
-    },
-    {
-      name: 'maximum string length for "content"',
-      data: {
-        ...articleValidData,
-        content: 'A'.repeat(articleConfigs.content.maxLength), // Maximum allowed content length
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000
-      },
-      expectedStatus: 200,
-      expectedIsDelete: false,
-    },
-
-    // Invalid enum values
-    {
-      name: 'invalid enum value for "petType"',
-      data: {
-        ...articleValidData,
-        petType: 'dragon', // Invalid pet type
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000
-      },
-      expectedStatus: 422,
-    },
-    {
-      name: 'invalid enum value for "lostCityCode"',
-      data: {
-        ...articleValidData,
-        lostCityCode: 'Z', // Invalid city code
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000
-      },
-      expectedStatus: 422,
-    },
-
-    // Logical inconsistencies
-    {
-      name: 'rewardAmount without hasReward being true',
-      data: {
-        ...articleValidData,
-        hasReward: false,
-        rewardAmount: 5000, // Should not allow a reward amount if hasReward is false
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000
-      },
-      expectedStatus: 422,
-    },
-    {
-      name: 'hasMicrochip true but no rewardAmount',
-      data: {
-        ...articleValidData,
-        hasMicrochip: true,
-        rewardAmount: 0, // Testing a scenario where a microchip is present but no reward
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000
-      },
-      expectedStatus: 200,
-      expectedIsDelete: false,
+      name: 'deletion attempt with an expired or invalid token',
+      articleId: () => articleId,
+      token: () => 'invalidtoken', // Invalid token
+      expectedStatus: 401,
+      shouldExistAfter: true,
     },
   ];
 
-  testCases.forEach(({ name, data, expectedStatus, expectedIsDelete }) => {
-    it(`updateArticle - ${name}`, async () => {
+  testCases.forEach(({ name, articleId, token, expectedStatus, shouldExistAfter }) => {
+    it(`deleteArticle - ${name}`, async () => {
       const res = await request(app)
-        .put(`/article/${articleId}/update`) // Adjust to your update route
-        .set('Authorization', `Bearer ${token}`)
-        .send(data);
-
+        .delete(`/article/${articleId()}`)
+        .set('Authorization', token() ? `Bearer ${token()}` : '');
       expect(res.status).to.equal(expectedStatus);
 
-      if (expectedStatus === 200) {
-        const updatedArticle = await Article.findById(articleId).lean();
-        updatedArticle.lostDate = new Date(updatedArticle.lostDate).toLocaleDateString('en-CA');
-        const articleValidDataWithoutLocation = { ...data };
-        expect(updatedArticle).to.include(removeNotEditableProperties(articleValidDataWithoutLocation));
-        expect(updatedArticle).to.have.property('location').that.deep.equals(data.location);
-        expect(updatedArticle.isDelete).to.equal(expectedIsDelete);
-        expect(updatedArticle.createdAt).to.not.equal(data.createdAt);
-        expect(updatedArticle.updatedAt).to.not.equal(data.updatedAt);
+      const deletedArticle = await Article.findOne({ _id: articleId(), isDelete: false }).lean();
+      if (shouldExistAfter) {
+        expect(deletedArticle).to.not.be.null;
+      } else {
+        expect(deletedArticle).to.be.null;
       }
     });
   });

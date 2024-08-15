@@ -48,4 +48,12 @@ async function createArticle(article, options) {
   }
 }
 
-export default { aggregate, getArticleByIdBoardPopulateUserBoard, createArticle }
+async function findByIdAndUpdate(id, updateData, options) {
+  try {
+    return await Article.findByIdAndUpdate(id, updateData, { ...options, new: true })
+  } catch (error) {
+    throw new DatabaseError(error, { id, updateData, options })
+  }
+}
+
+export default { aggregate, getArticleByIdBoardPopulateUserBoard, createArticle, findByIdAndUpdate }
