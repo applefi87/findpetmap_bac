@@ -56,12 +56,25 @@ export const validateUpdateArticle = async (req, res, next) => {
   next()
 };
 
-// export const validateGetArticleListWithBoard = async (req, res, next) => {
-//   const { filter, lang } = req.body;
-//   // filter 未來必須驗證，以免出問題
-//   if (!Array.isArray(lang)) { throw new ValidationObjectError("langErr"); }
-//   next()
-// };
+export const validateSearchArticleList = async (req, res, next) => {
+  const { petType, color ,location, lostDate, lostCityCode, lostDistrict, hasReward, rewardAmount } = req.body;
+  const fields = { petType, color, content, location, lostDate, lostCityCode, lostDistrict, hasReward };
+  validAllFieldsPresent(fields);
+
+  // 這區邏輯混亂，理想是能夠自定義必填+彈性調整，但目前modele依然寫死，所以就不管，之後再規劃
+  articleValidator.validatePetType(petType)
+  articleValidator.validateColor(petType, color)
+  articleValidator.validateLocation(location)
+  articleValidator.validateLostDate(lostDate);
+  articleValidator.validateLostCityCode(lostCityCode);
+  articleValidator.validateLostDistrict(lostCityCode, lostDistrict);
+
+  articleValidator.validateContent(content)
+
+  articleValidator.validateRewardAmount(hasReward, rewardAmount);
+  articleValidator.validateNotRequiredInput(req.body)
+  next()
+};
 
 export const validateGetArticleDetail = async (req, res, next) => {
   const strArticleId = req.params.id

@@ -46,8 +46,6 @@ export async function createArticle(req, res) {
 export async function updateArticle(req, res) {
   const { id } = req.params;
   const { petType, color, content, location, lostDate, lostCityCode, lostDistrict, hasReward, rewardAmount, hasMicrochip } = req.body;
-
-  // Populate updateData only with fields that are provided in req.body
   const updateData = {
     user: req.user._id,
     petType,
@@ -86,39 +84,40 @@ export async function updateArticle(req, res) {
     await session.endSession();
   }
 }
-// export const getArticleDetail = async (req, res, next) => {
-//   const strArticleId = req.params.id
-//   const strReqUserId = req.user?._id.toString()
-//   const { comment: strCommentId, reply: strReplyId } = req.body;
-//   const formatedArticleListWithBoard = await articleService.getArticleByIdBoardPopulateUserBoard(
-//     strArticleId,
-//     null,
-//     "board title content privacy user rating createdAt commentCount previewContent",
-//     "nickname score profileImage badges",
-//     `name.${req.interfaceLanguage}`,
-//     true,
-//     strReqUserId)
-//   if (!!formatedArticleListWithBoard) {
-//     let formatedRelatedCommentList = []
-//     let formatedSpecificComment = null
-//     let formatedSpecificReply = null
-//     //有要特定留言，通常是通知的url觸發有
-//     if (mongoose.Types.ObjectId.isValid(strCommentId)) {
-//       //可能是comment / feedback ,下方加工
-//       formatedSpecificComment = await commentService.getFormatedCommentByIdArticlePopulateUserBoard(strCommentId, strArticleId, "_id content privacy rating replyCount createdAt", "_id nickname score profileImage", null, true, strReqUserId)
-//     }
-//     formatedRelatedCommentList = await commentService.getFormatedRelatedCommentList(strArticleId, null, null, formatedSpecificComment?._id.toString(), strReqUserId)
-//     if (formatedSpecificComment) {
-//       //補足特殊留言的回覆
-//       if (mongoose.Types.ObjectId.isValid(strReplyId)) {
-//         formatedSpecificReply = await replyService.getFormatedReplyByIdCommentPopulateUser(strReplyId, strCommentId, "_id user content privacy rating createdAt", "_id nickname score profileImage", true, strReqUserId)
-//       }
-//     }
-//     ResponseHandler.successObject(res, "", { article: formatedArticleListWithBoard, commentList: formatedRelatedCommentList, specificComment: formatedSpecificComment, specificReply: formatedSpecificReply });
-//   } else {
-//     throw new ValidateObjectError("noArticle");
-//   }
-// };
+
+export const deleteArticle = async (req, res) => {
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    const article = req.resource
+    if (!article.isDelete) {
+      article.isDelete = true
+      await article.save({ session });
+    }
+    ResponseHandler.successObject(res, "articleDeleted");
+    await session.commitTransaction();
+  } catch (error) {
+    await session.abortTransaction();
+    throw error;
+  } finally {
+    await session.endSession();
+  }
+}
+
+export const getArticleDetail = async (req, res, next) => {
+  const strArticleId = req.params.id
+  const strReqUserId = req.user?._id.toString()
+
+  const formatedArticleListWithBoard = await articleService.getArticleById(
+    strArticleId,
+    null,
+    true)
+  if (!!formatedArticleListWithBoard) {
+    ResponseHandler.successObject(res, "", { article: formatedArticleListWithBoard });
+  } else {
+    throw new ValidateObjectError("noArticle");
+  }
+};
 
 // export async function updateArticleAndSaveImages(req, res) {
 //   const targetArticle = req.resource
@@ -157,27 +156,6 @@ export async function updateArticle(req, res) {
 //   }
 
 // }
-
-// export const deleteArticle = async (req, res) => {
-//   const session = await mongoose.startSession();
-//   try {
-//     session.startTransaction();
-//     const article = req.resource
-//     if (!article.isDelete) {
-//       article.isDelete = true
-//       await article.save({ session });
-//     }
-//     const updateData = { $inc: { [`record.count.article`]: -1 } }
-//     await userService.updateUserById(req.user._id.toString(), updateData, session)
-//     // 這就會觸發 res.status(200).json(xxx);
-//     ResponseHandler.successObject(res, "articleDeleted");
-//     await session.commitTransaction();
-//   } catch (error) {
-//     await session.abortTransaction();
-//     throw error;
-//   } finally {
-//     await session.endSession();
-//   }
 
 
 // };
