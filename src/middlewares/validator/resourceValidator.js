@@ -85,7 +85,8 @@ export const validateSearchArticleList = async (req, res, next) => {
   articleValidator.validateLostDistrict(lostCityCode, lostDistrict);
 
   articleValidator.validateHasReward(hasReward) 
-  articleValidator.validateRewardAmount(hasReward, rewardAmount);
+  // 查詢這部分邏輯不同
+  articleValidator.validateSearchRewardAmount(hasReward, rewardAmount);
   articleValidator.validateHasMicrochip(hasMicrochip);
   next()
 };

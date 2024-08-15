@@ -1,7 +1,5 @@
 import passport from 'passport'
 import jsonwebtoken from 'jsonwebtoken'
-import ValidationError from '../infrastructure/errors/ValidationError.js';
-import CustomError from '../infrastructure/errors/CustomError.js';
 //快取抓記憶體是否有存過
 // import { createClient } from 'redis';
 // const client = createClient();
@@ -21,26 +19,7 @@ export const login = (sqlSelect) => {
     })(req, res, next)
   }
 }
-// export const jwt = (sqlSelect) => {
-//   return (req, res, next) => {
-//     req.sqlSelect = sqlSelect ? sqlSelect + " tokens" : "_id nickname account score info tokens role"
-//     passport.authenticate('jwt', { session: false }, (err, data, info) => {
-//       if (err || !data) {
-//         // console.log(err, info);
-//         if (info instanceof jsonwebtoken.JsonWebTokenError) {
-//           //這1用next而是res,因為方便控制426(自動觸發登出)
-//           return res.status(426).send({ success: false, message: { title: 'loginVerificationError' } })
-//         } else {
-//           throw err
-//         }
-//       }
-//       req.user = data.user
-//       req.jwtSignature = data.jwtSignature
-//       // console.log("auth passed");
-//       next()
-//     })(req, res, next)
-//   }
-// }
+
 export const jwt = (sqlSelect) => {
   return (req, res, next) => {
     req.sqlSelect = sqlSelect ? sqlSelect + " tokens" : "_id nickname account score info tokens role"
@@ -70,11 +49,6 @@ export const jwt = (sqlSelect) => {
   }
 }
 
-// if (req.headers.authorization) {
-//     client.get(decoded.user.account, async (err, data) => {})
-//     client.setEx(req.user.account, 3600, JSON.stringify({ user: req.user, jwtSignature: req.jwtSignature }));
-//     next()
-// }
 // 直接取出token的id 後續controller能以他的id去查詢資料 
 export const onlyGetIdFromJWT = (req, res, next) => {
   passport.authenticate('onlyGetIdFromJWT', { session: false }, (err, id, info) => {

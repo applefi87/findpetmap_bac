@@ -72,17 +72,20 @@ export const validateLostCityCode = (lostCityCode) => {
 };
 
 export const validateLostDistrict = (lostCityCode, lostDistrict) => {
-  if (checkNoValue(lostCityCode)) { return }
-  validateLostCityCode(lostCityCode)
-  if (lostDistrict) {
-    if (cityCodeToAreaList[lostCityCode].includes(lostDistrict)) {
-      return
+  if (lostCityCode) {
+    validateLostCityCode(lostCityCode)
+    if (lostDistrict) {
+      if (!cityCodeToAreaList[lostCityCode].includes(lostDistrict)) {
+        throw new ValidationObjectError('lostDistrictInvalid');
+      }
     }
+  } else {
+    if (lostDistrict) { throw new ValidationObjectError('lostDistrictInvalid'); }
   }
-  throw new ValidationObjectError('lostDistrictInvalid');
 };
 
 export const validateHasReward = (hasReward) => {
+  if (checkNoValue(hasReward)) { return }
   if (typeof hasReward !== 'boolean') {
     throw new ValidationObjectError('hasRewardInvalid');
   }
@@ -93,13 +96,29 @@ export const validateRewardAmount = (hasReward, rewardAmount) => {
     if (rewardAmount == 0) {
       return
     }
-  }else if (rewardAmount && typeof rewardAmount === 'number' && rewardAmount > 0) {
+  } else if (rewardAmount && typeof rewardAmount === 'number' && rewardAmount > 0) {
     return
   }
   throw new ValidationObjectError('rewardAmountInvalid');
 };
 
+export const validateSearchRewardAmount = (hasReward, rewardAmount) => {
+  if (!hasReward) {
+    if (!rewardAmount || rewardAmount == 0) {
+      return
+    }
+  } else if (checkNoValue(rewardAmount)) {
+    // 只差在查詢可以沒rewardAmount
+    return
+  } else
+    if (typeof rewardAmount === 'number' && rewardAmount > 0) {
+      return
+    }
+  throw new ValidationObjectError('rewardAmountInvalid');
+};
+
 export const validateHasMicrochip = (hasMicrochip) => {
+  if (checkNoValue(hasMicrochip)) { return }
   if (typeof hasMicrochip !== 'boolean') {
     throw new ValidationObjectError('hasMicrochipInvalid');
   }

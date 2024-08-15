@@ -22,8 +22,14 @@ async function getArticleList(reqBody, skip, limit, strUserId) {
   return articleList
 }
 
+
+const getArticleById = async (id, selectString = undefined, isLean = false) => {
+  return await articleRepository.getArticleById(id, selectString, isLean)
+}
+
+
 async function updateArticleSession(id, articleObj, session) {
   return await articleRepository.findByIdAndUpdate(id, articleObj, { session })
 }
 
-export default { createArticleSession, getArticleList, updateArticleSession }
+export default { createArticleSession, getArticleList, updateArticleSession, getArticleById }

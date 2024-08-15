@@ -94,8 +94,6 @@ export const deleteArticle = async (req, res) => {
 
 export const getArticleDetail = async (req, res, next) => {
   const strArticleId = req.params.id
-  const strReqUserId = req.user?._id.toString()
-
   const formatedArticleListWithBoard = await articleService.getArticleById(
     strArticleId,
     null,

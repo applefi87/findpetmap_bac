@@ -56,4 +56,21 @@ async function findByIdAndUpdate(id, updateData, options) {
   }
 }
 
-export default { aggregate, getArticleByIdBoardPopulateUserBoard, createArticle, findByIdAndUpdate }
+const getArticleById = async (id, selectString = undefined, isLean = false) => {
+  try {
+    return await getArticle({ _id: id }, selectString, {}, isLean)
+  } catch (error) {
+    throw new DatabaseError(error, id)
+  }
+}
+const getArticle = async (findBy, selectString = undefined, option = {}, isLean = false) => {
+  try {
+    return await Article.findOne(findBy, selectString, option).lean(isLean)
+  } catch (error) {
+    throw new DatabaseError(error, findBy)
+  }
+}
+
+
+
+export default { aggregate, getArticleByIdBoardPopulateUserBoard, createArticle, findByIdAndUpdate, getArticleById }
