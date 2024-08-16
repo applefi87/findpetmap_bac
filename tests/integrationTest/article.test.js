@@ -649,7 +649,7 @@ describe('ArticleController searchArticleList Tests', function () {
     {
       petType: '貓',
       color: '橘',
-      location: { type: 'Point', coordinates: [121.5, 25.05] },
+      location: { type: 'Point', coordinates: [121.5111, 25.05111] },
       lostDate: new Date('2024-02-20'),
       lostCityCode: 'A',
       lostDistrict: '內湖區',
@@ -727,7 +727,7 @@ describe('ArticleController searchArticleList Tests', function () {
       body: {
         petType: '貓',
         color: '橘',
-        location: { type: 'Point', coordinates: [121.5, 25.05] },
+        location: { type: 'Point', coordinates: [121.5111, 25.05111] },
         lostDate: '2024-02-19',
         lostCityCode: 'A',
         lostDistrict: '內湖區',
@@ -765,7 +765,7 @@ describe('ArticleController searchArticleList Tests', function () {
       body: {
         petType: 'rabbit', // Assuming only '貓' and '狗' are valid
         color: '黑',
-        location: { type: 'Point', coordinates: [121.5, 25.05] },
+        location: { type: 'Point', coordinates: [121.5111, 25.05111] },
       },
       expectedStatus: 422,
       expectedArticlesCount: 0,
@@ -871,11 +871,11 @@ describe('ArticleController searchArticleList Tests', function () {
       body: {
         petType: '貓',
         color: '橘',
-        location: { type: 'Point', coordinates: [121.5, 25.05] },
+        location: { type: 'Point', coordinates: [121.5111, 25.05111] },
         hasReward: true,
       },
       expectedStatus: 200,
-      expectedArticlesCount: 0,
+      expectedArticlesCount: 1,
     },
     // Case 14: hasReward is false but rewardAmount provided
     {
@@ -912,7 +912,7 @@ describe('ArticleController searchArticleList Tests', function () {
         .send(body);
 
       expect(res.status).to.equal(expectedStatus);
-      console.log(res.body);
+      // console.log(res.body);
       if (expectedStatus === 200) {
         expect(res.body.data).to.have.property('articleList');
         expect(res.body.data.articleList).to.be.an('array');

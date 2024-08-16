@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 // import { trusted } from 'mongoose';
 
-export const articleListPipeline = (longitude, latitude, filter, skip, limit) => {
+export const generateGetArticleListPipeline = (longitude, latitude, filter, skip, limit) => {
   return [
     {
       $geoNear: {
