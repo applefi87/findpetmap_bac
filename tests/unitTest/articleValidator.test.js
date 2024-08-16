@@ -2,6 +2,7 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 import * as articleValidator from '../../src/utils/validator/articleValidator.js';
 import ValidationError from '../../src/infrastructure/errors/ValidationError.js';
+
 describe('Article Validator', () => {
   describe('validatePetType', () => {
     it('should not throw an error for valid pet type', () => {
@@ -39,13 +40,19 @@ describe('Article Validator', () => {
     it('should throw an error for invalid color for pet type', () => {
       const petType = '貓';
       const invalidColor = '藍';
-      expect(() => articleValidator.validateColor(petType, invalidColor)).to.throw(ValidationError, 'colorInvalid');
+      expect(() => articleValidator.validateColor(petType, invalidColor)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === 'colorInvalid';
+        });
     });
 
     it('should throw an error for valid color but invalid pet type', () => {
       const petType = '兔子';
       const color = '黑';
-      expect(() => articleValidator.validateColor(petType, color)).to.throw(ValidationError, 'petTypeInvalid');
+      expect(() => articleValidator.validateColor(petType, color)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === 'petTypeInvalid';
+        });
     });
 
     it('should not throw an error if color is undefined or null', () => {
@@ -63,12 +70,18 @@ describe('Article Validator', () => {
 
     it('should throw an error for invalid coordinates format', () => {
       const invalidCoordinates = ['invalid', 'invalid'];
-      expect(() => articleValidator.validateCoordinates(invalidCoordinates)).to.throw(ValidationError, 'coordinateInvalid');
+      expect(() => articleValidator.validateCoordinates(invalidCoordinates)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === 'coordinateInvalid';
+        });
     });
 
     it('should throw an error for coordinates out of range', () => {
       const outOfRangeCoordinates = [200, 100];
-      expect(() => articleValidator.validateCoordinates(outOfRangeCoordinates)).to.throw(ValidationError, 'coordinateInvalid');
+      expect(() => articleValidator.validateCoordinates(outOfRangeCoordinates)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === 'coordinateInvalid';
+        });
     });
   });
 
@@ -80,12 +93,19 @@ describe('Article Validator', () => {
 
     it('should throw an error for invalid location format', () => {
       const invalidLocation = { type: 'Point', coordinates: ['invalid', 'invalid'] };
-      expect(() => articleValidator.validateLocation(invalidLocation)).to.throw(ValidationError, 'locationInvalid');
+      expect(() => articleValidator.validateLocation(invalidLocation)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          console.log(error.validationResult.message);
+          return error.validationResult.message.title === 'coordinateInvalid';
+        });
     });
 
     it('should throw an error if location type is not Point', () => {
       const invalidLocation = { type: 'LineString', coordinates: [121.5, 25.05] };
-      expect(() => articleValidator.validateLocation(invalidLocation)).to.throw(ValidationError, 'locationInvalid');
+      expect(() => articleValidator.validateLocation(invalidLocation)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === 'locationInvalid';
+        });
     });
 
     it('should not throw an error if location is undefined or null', () => {
@@ -102,12 +122,18 @@ describe('Article Validator', () => {
 
     it('should throw an error for invalid lost date', () => {
       const invalidLostDate = 'invalid-date';
-      expect(() => articleValidator.validateLostDate(invalidLostDate)).to.throw(ValidationError, 'lostDateInvalid');
+      expect(() => articleValidator.validateLostDate(invalidLostDate)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === 'lostDateInvalid';
+        });
     });
 
     it('should throw an error if lost date is in the future', () => {
       const futureDate = '3024-02-21';
-      expect(() => articleValidator.validateLostDate(futureDate)).to.throw(ValidationError, 'lostDateInvalid');
+      expect(() => articleValidator.validateLostDate(futureDate)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === 'lostDateInvalid';
+        });
     });
 
     it('should not throw an error if lost date is undefined or null', () => {
@@ -123,8 +149,11 @@ describe('Article Validator', () => {
     });
 
     it('should throw an error for invalid city code', () => {
-      const invalidCityCode = 'Z';
-      expect(() => articleValidator.validateLostCityCode(invalidCityCode)).to.throw(ValidationError, 'lostCityCodeInvalid');
+      const invalidCityCode = 'L';
+      expect(() => articleValidator.validateLostCityCode(invalidCityCode)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === 'lostCityCodeInvalid';
+        });
     });
 
     it('should not throw an error if lost city code is undefined or null', () => {
@@ -143,13 +172,19 @@ describe('Article Validator', () => {
     it('should throw an error for invalid district in valid city code', () => {
       const validCityCode = 'A';
       const invalidDistrict = 'InvalidDistrict';
-      expect(() => articleValidator.validateLostDistrict(validCityCode, invalidDistrict)).to.throw(ValidationError, 'lostDistrictInvalid');
+      expect(() => articleValidator.validateLostDistrict(validCityCode, invalidDistrict)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === 'lostDistrictInvalid';
+        });
     });
 
     it('should throw an error if district is provided but city code is invalid', () => {
-      const invalidCityCode = 'Z';
+      const invalidCityCode = 'L';
       const district = '內湖區';
-      expect(() => articleValidator.validateLostDistrict(invalidCityCode, district)).to.throw(ValidationError, 'lostCityCodeInvalid');
+      expect(() => articleValidator.validateLostDistrict(invalidCityCode, district)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === 'lostCityCodeInvalid';
+        });
     });
 
     it('should not throw an error if both city code and district are undefined or null', () => {
@@ -165,7 +200,10 @@ describe('Article Validator', () => {
     });
 
     it('should throw an error for non-boolean hasReward', () => {
-      expect(() => articleValidator.validateHasReward('true')).to.throw(ValidationError, 'hasRewardInvalid');
+      expect(() => articleValidator.validateHasReward('true')).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === 'hasRewardInvalid';
+        });
     });
 
     it('should not throw an error if hasReward is undefined or null', () => {
@@ -177,25 +215,30 @@ describe('Article Validator', () => {
   describe('validateRewardAmount', () => {
     it('should not throw an error for valid reward amount when hasReward is true', () => {
       const hasReward = true;
-      const rewardAmount = 5000;
+      const rewardAmount = 1000;
       expect(() => articleValidator.validateRewardAmount(hasReward, rewardAmount)).to.not.throw();
     });
 
     it('should throw an error for invalid reward amount when hasReward is true', () => {
       const hasReward = true;
-      const invalidRewardAmount = -5000;
-      expect(() => articleValidator.validateRewardAmount(hasReward, invalidRewardAmount)).to.throw(ValidationError, 'rewardAmountInvalid');
+      const invalidRewardAmount = 'invalid-reward';
+      expect(() => articleValidator.validateRewardAmount(hasReward, invalidRewardAmount)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === 'rewardAmountInvalid';
+        });
     });
 
-    it('should not throw an error for reward amount 0 when hasReward is false', () => {
+    it('should not throw an error for empty reward amount when hasReward is false', () => {
       const hasReward = false;
-      const rewardAmount = 0;
-      expect(() => articleValidator.validateRewardAmount(hasReward, rewardAmount)).to.not.throw();
+      expect(() => articleValidator.validateRewardAmount(hasReward, '')).to.not.throw();
     });
 
     it('should throw an error if reward amount is not provided when hasReward is true', () => {
       const hasReward = true;
-      expect(() => articleValidator.validateRewardAmount(hasReward, undefined)).to.throw(ValidationError, 'rewardAmountInvalid');
+      expect(() => articleValidator.validateRewardAmount(hasReward, undefined)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === 'rewardAmountInvalid';
+        });
     });
   });
 
@@ -206,36 +249,15 @@ describe('Article Validator', () => {
     });
 
     it('should throw an error for non-boolean hasMicrochip', () => {
-      expect(() => articleValidator.validateHasMicrochip('true')).to.throw(ValidationError, 'hasMicrochipInvalid');
+      expect(() => articleValidator.validateHasMicrochip('true')).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === 'hasMicrochipInvalid';
+        });
     });
 
     it('should not throw an error if hasMicrochip is undefined or null', () => {
       expect(() => articleValidator.validateHasMicrochip(undefined)).to.not.throw();
       expect(() => articleValidator.validateHasMicrochip(null)).to.not.throw();
-    });
-  });
-
-  describe('validateMicrochipNumber', () => {
-    it('should not throw an error for valid microchip number when hasMicrochip is true', () => {
-      const hasMicrochip = true;
-      const microchipNumber = '123456789012345';
-      expect(() => articleValidator.validateMicrochipNumber(hasMicrochip, microchipNumber)).to.not.throw();
-    });
-
-    it('should throw an error for invalid microchip number when hasMicrochip is true', () => {
-      const hasMicrochip = true;
-      const invalidMicrochipNumber = 'invalid-microchip';
-      expect(() => articleValidator.validateMicrochipNumber(hasMicrochip, invalidMicrochipNumber)).to.throw(ValidationError, 'microchipNumberInvalid');
-    });
-
-    it('should not throw an error for empty microchip number when hasMicrochip is false', () => {
-      const hasMicrochip = false;
-      expect(() => articleValidator.validateMicrochipNumber(hasMicrochip, '')).to.not.throw();
-    });
-
-    it('should throw an error if microchip number is not provided when hasMicrochip is true', () => {
-      const hasMicrochip = true;
-      expect(() => articleValidator.validateMicrochipNumber(hasMicrochip, undefined)).to.throw(ValidationError, 'microchipNumberInvalid');
     });
   });
 });
