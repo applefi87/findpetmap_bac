@@ -68,12 +68,12 @@ export async function updateArticle(req, res) {
     const keepImageIdList = req.updateImageList.map(image => image.id);
     await imageService.deleteImageListByExceptIdListSession(keepImageIdList, false, session);
     if (req.updateImageList.length > 0) {
-      // 這邏輯複雜一些
-      // 重點再要保留的圖片，isPreview分4種情況: 全無預覽,增加預覽,重回預覽,不動(有預覽)
+      // 假設進來的req.updateImageList 有2張圖 
       // 1.全無預覽(跳過) : 跳過，就讓預覽圖保留反正後續步驟會把它改掉，沒改掉也不影響
-      // 2.不動(有預覽) : 偵測原本isPreview=true的圖片，又是isPreview=true=>不動
-      // 3.增加預覽: 標準流程，建立預覽圖後更新
-      // 4.重回預覽: 應該要建預覽圖，但是查詢該圖片fullPath已經有了(抓id)，所以把該resource所有預覽圖改isDelete=true & 對應id的改isDelete=false 就可以還原
+      // 2.不動(一個有預覽) : 偵測原本isPreview=true的圖片，又是isPreview=true=>不動
+      // 3.增加預覽(沒有): 標準流程，建立預覽圖後更新
+      // 4.重回預覽(原本有，但目前預覽圖是刪除狀態): 應該要建預覽圖，但是查詢該圖片fullPath已經有了(抓id)，所以把該resource所有預覽圖改isDelete=true & 對應id的改isDelete=false 就可以還原
+     
       // 1.
       const previewImage = req.updateImageList.find(image => image.isPreview);
       if (previewImage) {

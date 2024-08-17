@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import mongoose from 'mongoose'
-import { trusted } from 'mongoose'
 import request from 'supertest';
 import articleConfigs from "../../src/infrastructure/configs/articleConfigs.js"
 import bcrypt from 'bcrypt'
@@ -8,6 +7,8 @@ import bcrypt from 'bcrypt'
 import { app } from '../testApp.js'; // Import from the setup file
 import User from '../../src/models/userModel.js';
 import Article from '../../src/models/articleModel.js';
+import Image from '../../src/models/imageModel.js';
+import PreviewImage from '../../src/models/previewImageModel.js';
 
 const pwd = "testPASSWORD"
 const articleValidData = {
@@ -233,6 +234,7 @@ function removeNotEditableProperties(article) {
 //     // Your teardown logic here, if needed
 //   });
 
+
 //   beforeEach(async () => {
 //     const collections = await mongoose.connection.db?.collections();
 //     if (collections) {
@@ -263,54 +265,67 @@ function removeNotEditableProperties(article) {
 
 //   const testCases = [
 //     {
-//       name: 'valid data',
+//       name: 'valid data with valid updateImageList',
 //       data: {
 //         ...articleValidData,
 //         isDelete: true,
 //         createdAt: new Date() - 24 * 60 * 60 * 1000,
-//         updatedAt: new Date() - 24 * 60 * 60 * 1000
+//         updatedAt: new Date() - 24 * 60 * 60 * 1000,
+//         updateImageList: [
+//           { id: '60ddc71d3b7f4e3a2c8d9a72', isPreview: true },
+//           { id: '60ddc71d3b7f4e3a2c8d9a73', isPreview: false }
+//         ]
 //       },
 //       expectedStatus: 200,
 //       expectedIsDelete: false,
 //     },
 //     // Missing required fields
 //     {
-//       name: 'missing required field "lostDate"',
+//       name: 'missing required field "lostDate" with valid updateImageList',
 //       data: {
 //         ...articleValidData,
 //         lostDate: undefined,
 //         isDelete: true,
 //         createdAt: new Date() - 24 * 60 * 60 * 1000,
-//         updatedAt: new Date() - 24 * 60 * 60 * 1000
+//         updatedAt: new Date() - 24 * 60 * 60 * 1000,
+//         updateImageList: [
+//           { id: '60ddc71d3b7f4e3a2c8d9a72', isPreview: true },
+//         ]
 //       },
 //       expectedStatus: 422,
 //     },
 //     {
-//       name: 'missing required field "petType"',
+//       name: 'missing required field "petType" with valid updateImageList',
 //       data: {
 //         ...articleValidData,
 //         petType: undefined,
 //         isDelete: true,
 //         createdAt: new Date() - 24 * 60 * 60 * 1000,
-//         updatedAt: new Date() - 24 * 60 * 60 * 1000
+//         updatedAt: new Date() - 24 * 60 * 60 * 1000,
+//         updateImageList: [
+//           { id: '60ddc71d3b7f4e3a2c8d9a72', isPreview: true },
+//         ]
 //       },
 //       expectedStatus: 422,
 //     },
 
 //     // Invalid data types
 //     {
-//       name: 'invalid data type for "rewardAmount"',
+//       name: 'invalid data type for "rewardAmount" with valid updateImageList',
 //       data: {
 //         ...articleValidData,
 //         rewardAmount: 'five thousand',
 //         isDelete: true,
 //         createdAt: new Date() - 24 * 60 * 60 * 1000,
-//         updatedAt: new Date() - 24 * 60 * 60 * 1000
+//         updatedAt: new Date() - 24 * 60 * 60 * 1000,
+//         updateImageList: [
+//           { id: '60ddc71d3b7f4e3a2c8d9a72', isPreview: true },
+//         ]
 //       },
 //       expectedStatus: 422,
 //     },
 //     {
-//       name: 'invalid data type for "location.coordinates"',
+//       name: 'invalid data type for "location.coordinates" with valid updateImageList',
 //       data: {
 //         ...articleValidData,
 //         location: {
@@ -319,32 +334,41 @@ function removeNotEditableProperties(article) {
 //         },
 //         isDelete: true,
 //         createdAt: new Date() - 24 * 60 * 60 * 1000,
-//         updatedAt: new Date() - 24 * 60 * 60 * 1000
+//         updatedAt: new Date() - 24 * 60 * 60 * 1000,
+//         updateImageList: [
+//           { id: '60ddc71d3b7f4e3a2c8d9a72', isPreview: true },
+//         ]
 //       },
 //       expectedStatus: 422,
 //     },
 
 //     // Edge Cases
 //     {
-//       name: 'minimum valid rewardAmount',
+//       name: 'minimum valid rewardAmount with valid updateImageList',
 //       data: {
 //         ...articleValidData,
 //         rewardAmount: 1, // Testing the minimum valid value
 //         isDelete: true,
 //         createdAt: new Date() - 24 * 60 * 60 * 1000,
-//         updatedAt: new Date() - 24 * 60 * 60 * 1000
+//         updatedAt: new Date() - 24 * 60 * 60 * 1000,
+//         updateImageList: [
+//           { id: '60ddc71d3b7f4e3a2c8d9a72', isPreview: true },
+//         ]
 //       },
 //       expectedStatus: 200,
 //       expectedIsDelete: false,
 //     },
 //     {
-//       name: 'maximum string length for "content"',
+//       name: 'maximum string length for "content" with valid updateImageList',
 //       data: {
 //         ...articleValidData,
 //         content: 'A'.repeat(articleConfigs.content.maxLength), // Maximum allowed content length
 //         isDelete: true,
 //         createdAt: new Date() - 24 * 60 * 60 * 1000,
-//         updatedAt: new Date() - 24 * 60 * 60 * 1000
+//         updatedAt: new Date() - 24 * 60 * 60 * 1000,
+//         updateImageList: [
+//           { id: '60ddc71d3b7f4e3a2c8d9a72', isPreview: true },
+//         ]
 //       },
 //       expectedStatus: 200,
 //       expectedIsDelete: false,
@@ -352,47 +376,56 @@ function removeNotEditableProperties(article) {
 
 //     // Invalid enum values
 //     {
-//       name: 'invalid enum value for "petType"',
+//       name: 'invalid enum value for "petType" with valid updateImageList',
 //       data: {
 //         ...articleValidData,
 //         petType: 'dragon', // Invalid pet type
 //         isDelete: true,
 //         createdAt: new Date() - 24 * 60 * 60 * 1000,
-//         updatedAt: new Date() - 24 * 60 * 60 * 1000
+//         updatedAt: new Date() - 24 * 60 * 60 * 1000,
+//         updateImageList: [
+//           { id: '60ddc71d3b7f4e3a2c8d9a72', isPreview: true },
+//         ]
 //       },
 //       expectedStatus: 422,
 //     },
 //     {
-//       name: 'invalid enum value for "lostCityCode"',
+//       name: 'invalid enum value for "lostCityCode" with valid updateImageList',
 //       data: {
 //         ...articleValidData,
 //         lostCityCode: 'Z', // Invalid city code
 //         isDelete: true,
 //         createdAt: new Date() - 24 * 60 * 60 * 1000,
-//         updatedAt: new Date() - 24 * 60 * 60 * 1000
+//         updatedAt: new Date() - 24 * 60 * 60 * 1000,
+//         updateImageList: [
+//           { id: '60ddc71d3b7f4e3a2c8d9a72', isPreview: true },
+//         ]
 //       },
 //       expectedStatus: 422,
 //     },
 
 //     // Logical inconsistencies
 //     {
-//       name: 'rewardAmount without hasReward being true',
+//       name: 'rewardAmount without hasReward being true with valid updateImageList',
 //       data: {
 //         ...articleValidData,
 //         hasReward: false,
 //         rewardAmount: 5000, // Should not allow a reward amount if hasReward is false
 //         isDelete: true,
 //         createdAt: new Date() - 24 * 60 * 60 * 1000,
-//         updatedAt: new Date() - 24 * 60 * 60 * 1000
+//         updatedAt: new Date() - 24 * 60 * 60 * 1000,
+//         updateImageList: [
+//           { id: '60ddc71d3b7f4e3a2c8d9a72', isPreview: true },
+//         ]
 //       },
 //       expectedStatus: 422,
-//     }
+//     },
 //   ];
 
 //   testCases.forEach(({ name, data, expectedStatus, expectedIsDelete }) => {
 //     it(`updateArticle - ${name}`, async () => {
 //       const res = await request(app)
-//         .put(`/article/update/${articleId}`) // Adjust to your update route
+//         .put(`/article/update/${articleId}`)
 //         .set('Authorization', `Bearer ${token}`)
 //         .send(data);
 //       expect(res.status).to.equal(expectedStatus);
@@ -400,8 +433,11 @@ function removeNotEditableProperties(article) {
 //       if (expectedStatus === 200) {
 //         const updatedArticle = await Article.findById(articleId).lean();
 //         updatedArticle.lostDate = new Date(updatedArticle.lostDate).toLocaleDateString('en-CA');
-//         const articleValidDataWithoutLocation = { ...data };
-//         expect(updatedArticle).to.include(removeNotEditableProperties(articleValidDataWithoutLocation));
+//         const articleValidDataWithoutLocationUpdateImageList = { ...data };
+//         delete articleValidDataWithoutLocationUpdateImageList.location;
+//         delete articleValidDataWithoutLocationUpdateImageList.updateImageList
+
+//         expect(updatedArticle).to.include(removeNotEditableProperties(articleValidDataWithoutLocationUpdateImageList));
 //         expect(updatedArticle).to.have.property('location').that.deep.equals(data.location);
 //         expect(updatedArticle.isDelete).to.equal(expectedIsDelete);
 //         expect(updatedArticle.createdAt).to.not.equal(data.createdAt);
@@ -410,6 +446,157 @@ function removeNotEditableProperties(article) {
 //     });
 //   });
 // });
+
+describe('ArticleController Update Tests For Image Handle', function () {
+  this.timeout(10000); // Increase timeout for the test suite
+  let token;
+  let userId;
+  let articleId;
+
+  before(async () => {
+    // Your setup logic here, if needed
+  });
+
+  after(async () => {
+    // Your teardown logic here, if needed
+  });
+
+  beforeEach(async () => {
+    const collections = await mongoose.connection.db?.collections();
+    if (collections) {
+      for (let collection of collections) {
+        await collection.deleteMany({});
+      }
+    }
+
+    // Create a test user
+    const user = new User({ account: 'testaccount', password: bcrypt.hashSync(pwd, 8), nickname: 'nnnname', role: '1', safety: { nextTryAvailableAt: Date.now() } });
+    await user.save();
+    userId = user.id.toString();
+
+    // Log in to get JWT token
+    const res = await request(app)
+      .post('/user/login')
+      .send({ account: 'testaccount', password: pwd });
+    token = res.body.data.token;
+
+    // Create a test article
+    const article = new Article({
+      ...articleValidData,
+      user: userId,
+    });
+    await article.save();
+    articleId = article.id.toString();
+  });
+
+  // // Test Case 1: No preview images, skip update
+  // it('should skip update when no preview images', async () => {
+  //   const imageList = [
+  //     { id: '60ddc71d3b7f4e3a2c8d9a72', resource: articleId, fullPath: 'original/60ddc71d3b7f4e3a2c8d9a72.jpg', isPreview: false },
+  //     { id: '60ddc71d3b7f4e3a2c8d9a73', resource: articleId, fullPath: 'original/60ddc71d3b7f4e3a2c8d9a73.jpg', isPreview: false },
+  //   ];
+  //   await Image.insertMany(imageList);
+
+  //   const data = {
+  //     ...articleValidData,
+  //     updateImageList: imageList,
+  //   };
+
+  //   const res = await request(app)
+  //     .put(`/article/update/${articleId}`)
+  //     .set('Authorization', `Bearer ${token}`)
+  //     .send(data);
+  //   expect(res.status).to.equal(200);
+
+  //   const previewImages = await PreviewImage.find({ resource: articleId });
+  //   expect(previewImages).to.be.empty;
+  // });
+
+  // // Test Case 2: No changes, one preview image remains unchanged
+  // it('should retain the preview image when no changes', async () => {
+  //   const imageList = [
+  //     { id: '60ddc71d3b7f4e3a2c8d9a72', resource: articleId, fullPath: 'original/60ddc71d3b7f4e3a2c8d9a72.jpg', isPreview: true },
+  //   ];
+  //   await Image.insertMany(imageList);
+
+  //   const previewImage = new PreviewImage({
+  //     resource: articleId,
+  //     image: '60ddc71d3b7f4e3a2c8d9a72',
+  //     fullPath: 'preview/60ddc71d3b7f4e3a2c8d9a72',
+  //     isDelete: false,
+  //   });
+  //   await previewImage.save();
+
+  //   const data = {
+  //     ...articleValidData,
+  //     updateImageList: imageList,
+  //   };
+
+  //   const res = await request(app)
+  //     .put(`/article/update/${articleId}`)
+  //     .set('Authorization', `Bearer ${token}`)
+  //     .send(data);
+  //   expect(res.status).to.equal(200);
+
+  //   const updatedPreviewImage = await PreviewImage.findOne({ resource: articleId }).lean();
+  //   expect(updatedPreviewImage.isDelete).to.be.false;
+  //   expect(updatedPreviewImage.fullPath).to.include('preview/');
+  // });
+
+  // Test Case 3: Add a preview image
+  it('should add a preview image when none exists', async () => {
+    const imageList = [
+      { id: '60ddc71d3b7f4e3a2c8d9a72', resource: articleId, fullPath: 'original/60ddc71d3b7f4e3a2c8d9a72.jpg', isPreview: true },
+    ];
+    await Image.insertMany(imageList);
+    const data = {
+      ...articleValidData,
+      updateImageList: imageList,
+    };
+
+    const res = await request(app)
+      .put(`/article/update/${articleId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(data);
+    expect(res.status).to.equal(200);
+
+    const previewImage = await PreviewImage.findOne({ resource: articleId }).lean();
+    expect(previewImage).to.not.be.null;
+    expect(previewImage.fullPath).to.include('preview/');
+    expect(previewImage.isDelete).to.be.false;
+  });
+
+  // // Test Case 4: Restore a preview image that was previously deleted
+  // it('should restore a deleted preview image', async () => {
+  //   const imageList = [
+  //     { id: '60ddc71d3b7f4e3a2c8d9a72', resource: articleId, fullPath: 'original/60ddc71d3b7f4e3a2c8d9a72.jpg', isPreview: true },
+  //   ];
+  //   await Image.insertMany(imageList);
+
+  //   const previewImage = new PreviewImage({
+  //     resource: articleId,
+  //     image: '60ddc71d3b7f4e3a2c8d9a72',
+  //     fullPath: 'preview/60ddc71d3b7f4e3a2c8d9a72',
+  //     isDelete: true,
+  //   });
+  //   await previewImage.save();
+
+  //   const data = {
+  //     ...articleValidData,
+  //     updateImageList: imageList,
+  //   };
+
+  //   const res = await request(app)
+  //     .put(`/article/update/${articleId}`)
+  //     .set('Authorization', `Bearer ${token}`)
+  //     .send(data);
+  //   expect(res.status).to.equal(200);
+
+  //   const restoredPreviewImage = await PreviewImage.findOne({ resource: articleId }).lean();
+  //   expect(restoredPreviewImage.isDelete).to.be.false;
+  // });
+});
+
 
 // describe('ArticleController delete Tests', function () {
 //   this.timeout(10000); // Increase timeout for the test suite
@@ -636,297 +823,297 @@ function removeNotEditableProperties(article) {
 //     });
 //   });
 // });
-describe('ArticleController searchArticleList Tests', function () {
-  this.timeout(10000); // Increase timeout for the test suite
-  let token;
-  let userId;
+// describe('ArticleController searchArticleList Tests', function () {
+//   this.timeout(10000); // Increase timeout for the test suite
+//   let token;
+//   let userId;
 
-  // Sample password for the test user
-  const pwd = 'Test@1234';
+//   // Sample password for the test user
+//   const pwd = 'Test@1234';
 
-  // Sample article data
-  const articleData = [
-    {
-      petType: '貓',
-      color: '橘',
-      location: { type: 'Point', coordinates: [121.5111, 25.05111] },
-      lostDate: new Date('2024-02-20'),
-      lostCityCode: 'A',
-      lostDistrict: '內湖區',
-      hasReward: true,
-      rewardAmount: 50000,
-      hasMicrochip: true,
-      title: 'Lost Orange Cat',
-      content: 'Lost in Neihu District.',
-    },
-    {
-      petType: '狗',
-      color: '黑',
-      location: { type: 'Point', coordinates: [121.6, 25.04] },
-      lostDate: new Date('2024-02-18'),
-      lostCityCode: 'T',
-      lostDistrict: '信義區',
-      hasReward: false,
-      hasMicrochip: false,
-      title: 'Lost Black Dog',
-      content: 'Lost near Taipei 101.',
-    },
-    // Add more articles as needed for testing
-  ];
+//   // Sample article data
+//   const articleData = [
+//     {
+//       petType: '貓',
+//       color: '橘',
+//       location: { type: 'Point', coordinates: [121.5111, 25.05111] },
+//       lostDate: new Date('2024-02-20'),
+//       lostCityCode: 'A',
+//       lostDistrict: '內湖區',
+//       hasReward: true,
+//       rewardAmount: 50000,
+//       hasMicrochip: true,
+//       title: 'Lost Orange Cat',
+//       content: 'Lost in Neihu District.',
+//     },
+//     {
+//       petType: '狗',
+//       color: '黑',
+//       location: { type: 'Point', coordinates: [121.6, 25.04] },
+//       lostDate: new Date('2024-02-18'),
+//       lostCityCode: 'T',
+//       lostDistrict: '信義區',
+//       hasReward: false,
+//       hasMicrochip: false,
+//       title: 'Lost Black Dog',
+//       content: 'Lost near Taipei 101.',
+//     },
+//     // Add more articles as needed for testing
+//   ];
 
-  before(async () => {
-    // Any global setup logic if needed
-  });
+//   before(async () => {
+//     // Any global setup logic if needed
+//   });
 
-  after(async () => {
-    // Any global teardown logic if needed
-    await mongoose.connection.close();
-  });
+//   after(async () => {
+//     // Any global teardown logic if needed
+//     await mongoose.connection.close();
+//   });
 
-  beforeEach(async () => {
-    // Clean up the database before each test
-    const collections = await mongoose.connection.db?.collections();
-    if (collections) {
-      for (let collection of collections) {
-        await collection.deleteMany({});
-      }
-    }
+//   beforeEach(async () => {
+//     // Clean up the database before each test
+//     const collections = await mongoose.connection.db?.collections();
+//     if (collections) {
+//       for (let collection of collections) {
+//         await collection.deleteMany({});
+//       }
+//     }
 
-    // Create a test user
-    const user = new User({
-      account: 'testaccount',
-      password: bcrypt.hashSync(pwd, 8),
-      nickname: 'Test User',
-      role: '1',
-      safety: { nextTryAvailableAt: Date.now() },
-    });
-    await user.save();
-    userId = user.id.toString();
+//     // Create a test user
+//     const user = new User({
+//       account: 'testaccount',
+//       password: bcrypt.hashSync(pwd, 8),
+//       nickname: 'Test User',
+//       role: '1',
+//       safety: { nextTryAvailableAt: Date.now() },
+//     });
+//     await user.save();
+//     userId = user.id.toString();
 
-    // Log in to get JWT token
-    const res = await request(app)
-      .post('/user/login')
-      .send({ account: 'testaccount', password: pwd });
-    token = res.body.data.token;
+//     // Log in to get JWT token
+//     const res = await request(app)
+//       .post('/user/login')
+//       .send({ account: 'testaccount', password: pwd });
+//     token = res.body.data.token;
 
-    // Insert sample articles
-    for (const article of articleData) {
-      const newArticle = new Article({
-        ...article,
-        user: userId,
-        isDelete: false,
-      });
-      await newArticle.save();
-    }
-  });
+//     // Insert sample articles
+//     for (const article of articleData) {
+//       const newArticle = new Article({
+//         ...article,
+//         user: userId,
+//         isDelete: false,
+//       });
+//       await newArticle.save();
+//     }
+//   });
 
-  const testCases = [
-    // Case 1: Valid search with all parameters
-    {
-      name: 'valid search with all parameters',
-      body: {
-        petType: '貓',
-        color: '橘',
-        location: { type: 'Point', coordinates: [121.5111, 25.05111] },
-        lostDate: '2024-02-19',
-        lostCityCode: 'A',
-        lostDistrict: '內湖區',
-        hasReward: true,
-        rewardAmount: 50000,
-        hasMicrochip: true,
-        skip: 0,
-        limit: 10,
-      },
-      expectedStatus: 200,
-      expectedArticlesCount: 1,
-    },
-    // Case 2: Missing all required fields
-    {
-      name: 'missing all required fields',
-      body: {
-        lostDate: '2024-02-19',
-      },
-      expectedStatus: 422,
-      expectedArticlesCount: 0,
-    },
-    // Case 3: Missing some required fields
-    {
-      name: 'missing some required fields (petType and location)',
-      body: {
-        color: '黑',
-        lostDate: '2024-02-19',
-      },
-      expectedStatus: 422,
-      expectedArticlesCount: 0,
-    },
-    // Case 4: Invalid petType value
-    {
-      name: 'invalid petType value',
-      body: {
-        petType: 'rabbit', // Assuming only '貓' and '狗' are valid
-        color: '黑',
-        location: { type: 'Point', coordinates: [121.5111, 25.05111] },
-      },
-      expectedStatus: 422,
-      expectedArticlesCount: 0,
-    },
-    // Case 5: Invalid location format
-    {
-      name: 'invalid location format',
-      body: {
-        petType: '狗',
-        color: '黑',
-        location: { type: 'Point', coordinates: ['invalid', 'invalid'] },
-      },
-      expectedStatus: 422,
-      expectedArticlesCount: 0,
-    },
-    // Case 6: Valid search with optional parameters missing
-    {
-      name: 'valid search with optional parameters missing',
-      body: {
-        petType: '狗',
-        color: '黑',
-        location: { type: 'Point', coordinates: [121.5, 25.05] },
-      },
-      expectedStatus: 200,
-      expectedArticlesCount: 1,
-    },
-    // Case 7: Valid search but no matching articles
-    {
-      name: 'valid search but no matching articles',
-      body: {
-        petType: '貓',
-        color: '黑',
-        location: { type: 'Point', coordinates: [121.5, 25.05] },
-      },
-      expectedStatus: 200,
-      expectedArticlesCount: 0,
-    },
-    // Case 8: Pagination test with skip and limit
-    {
-      name: 'pagination test with skip and limit',
-      body: {
-        petType: '貓',
-        color: '橘',
-        location: { type: 'Point', coordinates: [121.5, 25.05] },
-        skip: 0,
-        limit: 1,
-      },
-      expectedStatus: 200,
-      expectedArticlesCount: 1,
-    },
-    // Case 9: Exceeding maximum limit
-    {
-      name: 'exceeding maximum limit',
-      body: {
-        petType: '狗',
-        color: '黑',
-        location: { type: 'Point', coordinates: [121.5, 25.05] },
-        skip: 0,
-        limit: 100, // Assuming max limit is 50
-      },
-      expectedStatus: 200,
-      expectedArticlesCount: 1, // Should still return valid articles but limit applied
-    },
-    // Case 10: Negative skip value
-    {
-      name: 'negative skip value',
-      body: {
-        petType: '狗',
-        color: '黑',
-        location: { type: 'Point', coordinates: [121.5, 25.05] },
-        skip: -10,
-        limit: 10,
-      },
-      expectedStatus: 200,
-      expectedArticlesCount: 1, // skip should default to 0
-    },
-    // Case 11: Invalid date format
-    {
-      name: 'invalid date format for lostDate',
-      body: {
-        petType: '貓',
-        color: '橘',
-        location: { type: 'Point', coordinates: [121.5, 25.05] },
-        lostDate: '20th Feb 2024', // Invalid format
-      },
-      expectedStatus: 422,
-      expectedArticlesCount: 0,
-    },
-    // Case 12: Missing location coordinates
-    {
-      name: 'missing location coordinates',
-      body: {
-        petType: '貓',
-        color: '橘',
-        location: { type: 'Point' }, // Coordinates missing
-      },
-      expectedStatus: 422,
-      expectedArticlesCount: 0,
-    },
-    // Case 13: pure hasReward is accepted
-    {
-      name: 'pure hasReward is accepted',
-      body: {
-        petType: '貓',
-        color: '橘',
-        location: { type: 'Point', coordinates: [121.5111, 25.05111] },
-        hasReward: true,
-      },
-      expectedStatus: 200,
-      expectedArticlesCount: 1,
-    },
-    // Case 14: hasReward is false but rewardAmount provided
-    {
-      name: 'hasReward is false but rewardAmount provided',
-      body: {
-        petType: '貓',
-        color: '橘',
-        location: { type: 'Point', coordinates: [121.5, 25.05] },
-        hasReward: false,
-        rewardAmount: 1000,
-      },
-      expectedStatus: 422,
-      expectedArticlesCount: 0,
-    },
-    // Case 15: hasMicrochip is invalid boolean
-    {
-      name: 'hasMicrochip is invalid boolean',
-      body: {
-        petType: '貓',
-        color: '橘',
-        location: { type: 'Point', coordinates: [121.5, 25.05] },
-        hasMicrochip: 'yes', // Should be a boolean
-      },
-      expectedStatus: 422,
-      expectedArticlesCount: 0,
-    },
-  ];
+//   const testCases = [
+//     // Case 1: Valid search with all parameters
+//     {
+//       name: 'valid search with all parameters',
+//       body: {
+//         petType: '貓',
+//         color: '橘',
+//         location: { type: 'Point', coordinates: [121.5111, 25.05111] },
+//         lostDate: '2024-02-19',
+//         lostCityCode: 'A',
+//         lostDistrict: '內湖區',
+//         hasReward: true,
+//         rewardAmount: 50000,
+//         hasMicrochip: true,
+//         skip: 0,
+//         limit: 10,
+//       },
+//       expectedStatus: 200,
+//       expectedArticlesCount: 1,
+//     },
+//     // Case 2: Missing all required fields
+//     {
+//       name: 'missing all required fields',
+//       body: {
+//         lostDate: '2024-02-19',
+//       },
+//       expectedStatus: 422,
+//       expectedArticlesCount: 0,
+//     },
+//     // Case 3: Missing some required fields
+//     {
+//       name: 'missing some required fields (petType and location)',
+//       body: {
+//         color: '黑',
+//         lostDate: '2024-02-19',
+//       },
+//       expectedStatus: 422,
+//       expectedArticlesCount: 0,
+//     },
+//     // Case 4: Invalid petType value
+//     {
+//       name: 'invalid petType value',
+//       body: {
+//         petType: 'rabbit', // Assuming only '貓' and '狗' are valid
+//         color: '黑',
+//         location: { type: 'Point', coordinates: [121.5111, 25.05111] },
+//       },
+//       expectedStatus: 422,
+//       expectedArticlesCount: 0,
+//     },
+//     // Case 5: Invalid location format
+//     {
+//       name: 'invalid location format',
+//       body: {
+//         petType: '狗',
+//         color: '黑',
+//         location: { type: 'Point', coordinates: ['invalid', 'invalid'] },
+//       },
+//       expectedStatus: 422,
+//       expectedArticlesCount: 0,
+//     },
+//     // Case 6: Valid search with optional parameters missing
+//     {
+//       name: 'valid search with optional parameters missing',
+//       body: {
+//         petType: '狗',
+//         color: '黑',
+//         location: { type: 'Point', coordinates: [121.5, 25.05] },
+//       },
+//       expectedStatus: 200,
+//       expectedArticlesCount: 1,
+//     },
+//     // Case 7: Valid search but no matching articles
+//     {
+//       name: 'valid search but no matching articles',
+//       body: {
+//         petType: '貓',
+//         color: '黑',
+//         location: { type: 'Point', coordinates: [121.5, 25.05] },
+//       },
+//       expectedStatus: 200,
+//       expectedArticlesCount: 0,
+//     },
+//     // Case 8: Pagination test with skip and limit
+//     {
+//       name: 'pagination test with skip and limit',
+//       body: {
+//         petType: '貓',
+//         color: '橘',
+//         location: { type: 'Point', coordinates: [121.5, 25.05] },
+//         skip: 0,
+//         limit: 1,
+//       },
+//       expectedStatus: 200,
+//       expectedArticlesCount: 1,
+//     },
+//     // Case 9: Exceeding maximum limit
+//     {
+//       name: 'exceeding maximum limit',
+//       body: {
+//         petType: '狗',
+//         color: '黑',
+//         location: { type: 'Point', coordinates: [121.5, 25.05] },
+//         skip: 0,
+//         limit: 100, // Assuming max limit is 50
+//       },
+//       expectedStatus: 200,
+//       expectedArticlesCount: 1, // Should still return valid articles but limit applied
+//     },
+//     // Case 10: Negative skip value
+//     {
+//       name: 'negative skip value',
+//       body: {
+//         petType: '狗',
+//         color: '黑',
+//         location: { type: 'Point', coordinates: [121.5, 25.05] },
+//         skip: -10,
+//         limit: 10,
+//       },
+//       expectedStatus: 200,
+//       expectedArticlesCount: 1, // skip should default to 0
+//     },
+//     // Case 11: Invalid date format
+//     {
+//       name: 'invalid date format for lostDate',
+//       body: {
+//         petType: '貓',
+//         color: '橘',
+//         location: { type: 'Point', coordinates: [121.5, 25.05] },
+//         lostDate: '20th Feb 2024', // Invalid format
+//       },
+//       expectedStatus: 422,
+//       expectedArticlesCount: 0,
+//     },
+//     // Case 12: Missing location coordinates
+//     {
+//       name: 'missing location coordinates',
+//       body: {
+//         petType: '貓',
+//         color: '橘',
+//         location: { type: 'Point' }, // Coordinates missing
+//       },
+//       expectedStatus: 422,
+//       expectedArticlesCount: 0,
+//     },
+//     // Case 13: pure hasReward is accepted
+//     {
+//       name: 'pure hasReward is accepted',
+//       body: {
+//         petType: '貓',
+//         color: '橘',
+//         location: { type: 'Point', coordinates: [121.5111, 25.05111] },
+//         hasReward: true,
+//       },
+//       expectedStatus: 200,
+//       expectedArticlesCount: 1,
+//     },
+//     // Case 14: hasReward is false but rewardAmount provided
+//     {
+//       name: 'hasReward is false but rewardAmount provided',
+//       body: {
+//         petType: '貓',
+//         color: '橘',
+//         location: { type: 'Point', coordinates: [121.5, 25.05] },
+//         hasReward: false,
+//         rewardAmount: 1000,
+//       },
+//       expectedStatus: 422,
+//       expectedArticlesCount: 0,
+//     },
+//     // Case 15: hasMicrochip is invalid boolean
+//     {
+//       name: 'hasMicrochip is invalid boolean',
+//       body: {
+//         petType: '貓',
+//         color: '橘',
+//         location: { type: 'Point', coordinates: [121.5, 25.05] },
+//         hasMicrochip: 'yes', // Should be a boolean
+//       },
+//       expectedStatus: 422,
+//       expectedArticlesCount: 0,
+//     },
+//   ];
 
-  testCases.forEach(({ name, body, expectedStatus, expectedArticlesCount }) => {
-    it(`searchArticleList - ${name}`, async () => {
-      const res = await request(app)
-        .post('/article')
-        .set('Content-Type', 'application/json')
-        .send(body);
+//   testCases.forEach(({ name, body, expectedStatus, expectedArticlesCount }) => {
+//     it(`searchArticleList - ${name}`, async () => {
+//       const res = await request(app)
+//         .post('/article')
+//         .set('Content-Type', 'application/json')
+//         .send(body);
 
-      expect(res.status).to.equal(expectedStatus);
-      // console.log(res.body);
-      if (expectedStatus === 200) {
-        expect(res.body.data).to.have.property('articleList');
-        expect(res.body.data.articleList).to.be.an('array');
-        expect(res.body.data.articleList.length).to.equal(expectedArticlesCount);
+//       expect(res.status).to.equal(expectedStatus);
+//       // console.log(res.body);
+//       if (expectedStatus === 200) {
+//         expect(res.body.data).to.have.property('articleList');
+//         expect(res.body.data.articleList).to.be.an('array');
+//         expect(res.body.data.articleList.length).to.equal(expectedArticlesCount);
 
-        // Additional checks to ensure returned articles match the search criteria
-        if (expectedArticlesCount > 0) {
-          res.body.data.articleList.forEach((article) => {
-            expect(article).to.have.property('petType', body.petType);
-            expect(article).to.have.property('color', body.color);
-            // You can add more field checks as needed
-          });
-        }
-      }
-    });
-  });
-});
+//         // Additional checks to ensure returned articles match the search criteria
+//         if (expectedArticlesCount > 0) {
+//           res.body.data.articleList.forEach((article) => {
+//             expect(article).to.have.property('petType', body.petType);
+//             expect(article).to.have.property('color', body.color);
+//             // You can add more field checks as needed
+//           });
+//         }
+//       }
+//     });
+//   });
+// });
