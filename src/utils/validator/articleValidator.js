@@ -1,5 +1,5 @@
 // 這裡都是可接受沒值，所以引用者要另外判斷
-
+import mongoose from 'mongoose'
 import anValidator from 'an-validator';
 import articleConfigs from "../../infrastructure/configs/articleConfigs.js"
 import { cityCodeList, cityCodeToAreaList } from "../../infrastructure/configs/cityConfigs.js"
@@ -144,6 +144,31 @@ export const validateBooleanInputColumns = (reqBody) => {
     }
   }
 };
+// req.body.updateImageList = [{
+//   id: mongoose.Types.ObjectId(),
+//   isPreview: true||false
+// }]
+export const validUpdateImageList = (req) => {
+  const updateImageList = req.body.updateImageList
+  if (!Array.isArray(updateImageList)) {
+    throw new ValidationObjectError("validation.invalidType");
+  }
+  req.updateImageList = []
+  let alreadyHasPreview = false
+  for (const image of updateImageList) {
+    if (!mongoose.Types.ObjectId.isValid(image.id)) {
+      throw new ValidationObjectError("validation.invalidType")
+    } else {
+      req.updateImageList.push({
+        id: image.id,
+        isPreview: image.isPreview && !alreadyHasPreview
+      })
+      if (image.isPreview) {
+        alreadyHasPreview = true
+      }
+    }
+  }
+}
 
 function checkNoValue(value) {
   return (value === null || value === undefined)

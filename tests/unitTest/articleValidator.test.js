@@ -95,7 +95,6 @@ describe('Article Validator', () => {
       const invalidLocation = { type: 'Point', coordinates: ['invalid', 'invalid'] };
       expect(() => articleValidator.validateLocation(invalidLocation)).to.throw(ValidationError)
         .and.to.satisfy((error) => {
-          console.log(error.validationResult.message);
           return error.validationResult.message.title === 'coordinateInvalid';
         });
     });
@@ -258,6 +257,97 @@ describe('Article Validator', () => {
     it('should not throw an error if hasMicrochip is undefined or null', () => {
       expect(() => articleValidator.validateHasMicrochip(undefined)).to.not.throw();
       expect(() => articleValidator.validateHasMicrochip(null)).to.not.throw();
+    });
+  });
+
+  describe('validUpdateImageList', () => {
+    it('should not throw an error for valid updateImageList', () => {
+      const req = {
+        body: {
+          updateImageList: [
+            { id: '60ddc71d3b7f4e3a2c8d9a72', isPreview: true },
+            { id: '60ddc71d3b7f4e3a2c8d9a73', isPreview: false }
+          ]
+        }
+      };
+      expect(() => articleValidator.validUpdateImageList(req)).to.not.throw();
+      expect(req.updateImageList).to.deep.equal([
+        { id: '60ddc71d3b7f4e3a2c8d9a72', isPreview: true },
+        { id: '60ddc71d3b7f4e3a2c8d9a73', isPreview: false }
+      ]);
+    });
+
+    it('should throw an error if updateImageList is not an array', () => {
+      const req = {
+        body: {
+          updateImageList: 'not-an-array'
+        }
+      };
+
+      expect(() => articleValidator.validUpdateImageList(req)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === "validation.invalidType";
+        });
+    });
+
+    it('should throw an error if any id in updateImageList is invalid', () => {
+      const req = {
+        body: {
+          updateImageList: [
+            { id: 'invalid-id', isPreview: true }
+          ]
+        }
+      };
+
+      expect(() => articleValidator.validUpdateImageList(req)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === "validation.invalidType";
+        });
+    });
+
+    it('should ensure only one image is set as isPreview', () => {
+      const req = {
+        body: {
+          updateImageList: [
+            { id: '60ddc71d3b7f4e3a2c8d9a72', isPreview: true },
+            { id: '60ddc71d3b7f4e3a2c8d9a73', isPreview: true }
+          ]
+        }
+      };
+
+      expect(() => articleValidator.validUpdateImageList(req)).to.not.throw();
+      expect(req.updateImageList).to.deep.equal([
+        { id: '60ddc71d3b7f4e3a2c8d9a72', isPreview: true },
+        { id: '60ddc71d3b7f4e3a2c8d9a73', isPreview: false }
+      ]);
+    });
+
+    it('should handle an empty updateImageList array', () => {
+      const req = {
+        body: {
+          updateImageList: []
+        }
+      };
+
+      expect(() => articleValidator.validUpdateImageList(req)).to.not.throw();
+      expect(req.updateImageList).to.deep.equal([]);
+    });
+
+    it('should handle updateImageList with no isPreview images', () => {
+      const req = {
+        body: {
+          updateImageList: [
+            { id: '60ddc71d3b7f4e3a2c8d9a72', isPreview: false },
+            { id: '60ddc71d3b7f4e3a2c8d9a73', isPreview: false }
+          ]
+        }
+      };
+
+      expect(() => articleValidator.validUpdateImageList(req)).to.not.throw();
+      expect(req.updateImageList).to.deep.equal([
+        { id: '60ddc71d3b7f4e3a2c8d9a72', isPreview: false },
+        { id: '60ddc71d3b7f4e3a2c8d9a73', isPreview: false }
+      ]);
     });
   });
 });

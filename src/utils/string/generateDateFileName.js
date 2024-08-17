@@ -3,9 +3,9 @@
  * @param {string} fileExtension - File extension
  * @returns {string} The full path including the generated file name
  */
-export default function generateFullPath(fileExtension) {
+export default function generateFullPath(fileExtension, preFolder) {
   const now = new Date();
-  const path = generateFilePath(now);
+  const path = generateFilePath(now, preFolder);
   const fileName = generateFileName(now, fileExtension);
   return `${path}/${fileName}`;
 }
@@ -15,11 +15,12 @@ export default function generateFullPath(fileExtension) {
  * @param {Date} now - The current date object
  * @returns {string} The generated folder path
  */
-export function generateFilePath(now) {
+export function generateFilePath(now, preFolder) {
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
   const day = String(now.getDate()).padStart(2, '0');
-  return `${year}/${month}/${day}`;
+  const result = preFolder ? `${preFolder}/${year}/${month}/${day}` : `${year}/${month}/${day}`
+  return result
 }
 
 /**

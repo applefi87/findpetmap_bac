@@ -16,7 +16,12 @@ const imageSchema = new mongoose.Schema({
   //   required: true,
   //   enum: ['Article'],
   //   default: 'Article'
-  // }
+  // },
+  image: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Image',
+    required: true,
+  },
   isPreview: {
     type: Boolean,
     default: false
@@ -37,11 +42,10 @@ const imageSchema = new mongoose.Schema({
   }
 }, { versionKey: false });
 
+
 // 供建立時確保唯一
 imageSchema.index({ fullPath: 1 }, { unique: true })
-// 以下INDEX使用情境
-//一般抓取文章詳細圖片清單用到的
-// 給排程定期掃過久要被刪除的圖片(不過一天才一次)
+//一般抓取文章清單/給排程定期掃過久要被刪除的圖片(不過一天才一次) ,可以共用
 imageSchema.index({ isDelete: 1, resource: 1 })
 
-export default mongoose.model('Image', imageSchema);
+export default mongoose.model('previewImage', imageSchema);

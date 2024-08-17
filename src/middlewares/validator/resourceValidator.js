@@ -2,19 +2,10 @@ import mongoose from 'mongoose'
 // import { trusted } from 'mongoose'
 import anValidator from 'an-validator';
 
-import articleConfigs from '../../infrastructure/configs/articleConfigs.js'
-
-import articleService from '../../services/articleService.js';
-
 import * as articleValidator from "../../utils/validator/articleValidator.js"
-
-// import commentService from '../../services/commentService.js';
-// import { extractThumbnailUrl, getPlainTextPreview } from '../../infrastructure/utils/htmlTool.js';
 import ValidationError from '../../infrastructure/errors/ValidationError.js'
 import ValidationObjectError from '../../infrastructure/errors/ValidationObjectError.js'
-import { languageValues } from '../../infrastructure/configs/languageOptions.js'
 
-// import { validAllLangKeysHasValue } from loikjuo'../utils/validator/validAllLangKeys.js'
 //email在驗證碼就檢查完，所以這邊不用再檢查了
 const { rules, validateByRules } = anValidator;
 // const window = new JSDOM('').window;
@@ -29,7 +20,7 @@ function validAllFieldsPresent(fields) {
   }
 }
 
-export const validateCreateArticle = async (req, res, next) => {
+export const validateCreateArticle = (req, res, next) => {
   const { petType, color, content, location, lostDate, lostCityCode, lostDistrict, hasReward, rewardAmount, hasMicrochip } = req.body;
 
   const mustInputFields = { petType, color, content, location, lostDate, lostCityCode, lostDistrict, hasReward, hasMicrochip };
@@ -44,30 +35,15 @@ export const validateCreateArticle = async (req, res, next) => {
 
   articleValidator.validateContent(content)
 
-  articleValidator.validateHasReward(hasReward) 
+  articleValidator.validateHasReward(hasReward)
   articleValidator.validateRewardAmount(hasReward, rewardAmount);
   articleValidator.validateHasMicrochip(hasMicrochip);
   next()
 };
 
-export const validateUpdateArticle = async (req, res, next) => {
-  const { petType, color, content, location, lostDate, lostCityCode, lostDistrict, hasReward, rewardAmount, hasMicrochip } = req.body;
-
-  const mustInputFields = { petType, color, content, location, lostDate, lostCityCode, lostDistrict, hasReward,hasMicrochip };
-  validAllFieldsPresent(mustInputFields);
-
-  articleValidator.validatePetType(petType)
-  articleValidator.validateColor(petType, color)
-  articleValidator.validateLocation(location)
-  articleValidator.validateLostDate(lostDate);
-  articleValidator.validateLostCityCode(lostCityCode);
-  articleValidator.validateLostDistrict(lostCityCode, lostDistrict);
-
-  articleValidator.validateContent(content)
-
-  articleValidator.validateHasReward(hasReward) 
-  articleValidator.validateRewardAmount(hasReward, rewardAmount);
-  articleValidator.validateHasMicrochip(hasMicrochip);
+export const validateUpdateArticle = (req, res, next) => {
+  validateCreateArticle(req, res, next)
+  articleValidator.validUpdateImageList(req);
   next()
 };
 
@@ -84,7 +60,7 @@ export const validateSearchArticleList = async (req, res, next) => {
   articleValidator.validateLostCityCode(lostCityCode);
   articleValidator.validateLostDistrict(lostCityCode, lostDistrict);
 
-  articleValidator.validateHasReward(hasReward) 
+  articleValidator.validateHasReward(hasReward)
   // 查詢這部分邏輯不同
   articleValidator.validateSearchRewardAmount(hasReward, rewardAmount);
   articleValidator.validateHasMicrochip(hasMicrochip);

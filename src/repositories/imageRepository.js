@@ -6,25 +6,11 @@ async function createImage(image, options) {
   try {
     return await Image.create(image, options)
   } catch (error) {
-    throw new DatabaseError(error, image)
+    throw new DatabaseError(error, { image, options })
   }
 }
 
-async function updateImagesByOids(oids, updateObj, options = {}) {
-  return await updateImages(
-    { _id: trusted({ $in: oids }) },
-    updateObj,
-    options)
-}
-
-async function updateImagesByFullPaths(fullPaths, updateObj, options = {}) {
-  return await updateImages(
-    { fullPath: trusted({ $in: fullPaths }) },
-    updateObj,
-    options)
-}
-
-async function updateImages(filter, updateObj, options = {}) {
+async function updateManyImage(filter, updateObj, options = {}) {
   try {
     return await Image.updateMany(
       filter, // Condition to match documents with given IDs
@@ -32,15 +18,33 @@ async function updateImages(filter, updateObj, options = {}) {
       options // Additional options for the update operation
     );
   } catch (error) {
-    throw new DatabaseError(error, { ids: oids, updateObj });
+    // throw new DatabaseError(error, { filter, updateObj, options });
   }
 }
 
-async function findImages(filter, selectionString = undefined, isLean = false) {
+
+async function findImageList(filter, selectionString = undefined, isLean = false) {
   try {
     return await Image.find(filter, selectionString).lean(isLean);
   } catch (error) {
-    throw new DatabaseError(error, filter);
+    throw new DatabaseError(error, { filter, selectionString, isLean });
+  }
+}
+
+
+async function findOneImage(filter, selectionString = undefined, isLean = false) {
+  try {
+    return await Image.findOne(filter, selectionString).lean(isLean);
+  } catch (error) {
+    throw new DatabaseError(error, { filter, selectionString, isLean });
+  }
+}
+
+async function bulkWriteImage(ops, options = {}) {
+  try {
+    return await Image.bulkWrite(ops, options);
+  } catch (error) {
+    throw new DatabaseError(error, { ops, options });
   }
 }
 
@@ -53,4 +57,4 @@ async function findImages(filter, selectionString = undefined, isLean = false) {
 //   }
 // }
 
-export default { createImage, updateImagesByOids, updateImagesByFullPaths, findImages }
+export default { createImage, updateManyImage, findImageList, findOneImage, bulkWriteImage }

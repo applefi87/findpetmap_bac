@@ -3,7 +3,7 @@ import imageService from '../services/imageService.js'
 import previewImageService from '../services/previewImageService.js'
 // import draftService from '../services/draftService.js'
 // import articleUpdateDraftService from '../services/articleUpdateDraftService.js'
-import s3Service from '../services/s3Service.js'
+// import s3Service from '../services/s3Service.js'
 import generateFullPath from '../utils/string/generateDateFileName.js'
 // // import Draft from '../models/draftModel.js';
 // // import TempImageList from '../models/tempImageList.js';
@@ -17,15 +17,12 @@ import generateFullPath from '../utils/string/generateDateFileName.js'
 import { processImage } from '../utils/image.js';
 // import { filterUniqueStringArray } from '../infrastructure/utils/stringTool.js'
 
-export async function saveImage(req, res, next) {
-  const strArticleId = req.params.id
+async function saveImage(req, res, next) {
   const newImage = {
-    fullPath: "",
-    resource: strArticleId
+    fullPath: ""
   }
   const newPreviewImage = {
-    fullPath: "",
-    resource: strArticleId
+    fullPath: ""
   }
   // 因為要用session + unique index, 所以用這順序可以一直試到不會有重複的並繼續session,不然失敗要記得關閉session
   //只有超大流量極少數會這樣
@@ -36,27 +33,24 @@ export async function saveImage(req, res, next) {
   let previewFullPath;
   const { buffer, mimetype } = req.file;
   const format = mimetype.split('/')[1];
-  // 先跑，因為最常是檔案類型有問題
-  const originalImageBuffer = await processImage(buffer, format);
+  const bigImageBuffer = await processImage(buffer, format);
   try {
     let errTimes = 0
     while (!isSuccessCreatedImage) {
       try {
         preFullPath = generateFullPath(format);
-        // **完整圖**
         originalFullPath = "original/" + preFullPath;
         newImage.fullPath = originalFullPath;
         //直接透過創建來避免unique的問題
         session = await mongoose.startSession();
         session.startTransaction();
         const [images] = await imageService.createImageSession(newImage, session);
-        // **預覽圖(如果有需要)**
-        if (req.isPreview) {
-          previewFullPath = `preview/${preFullPath}`;
-          await previewImageService.handlePreviewImage(strArticleId, previewFullPath, session)
-        }
-        // 反正有問題會直接報錯，不會跑到這
-        isSuccessCreatedImage = images
+
+        //預期到這已經成功增加原始圖且確認沒有重覆路徑，因為預覽圖只差在前墜路徑是preview所以預期不會重覆，不用前面這麼複雜檢查
+        previewFullPath = "preview/" + preFullPath;
+        newPreviewImage.fullPath = previewFullPath;
+        const [previewImages] = await previewImageService.createImageSession(newPreviewImage, session);
+        isSuccessCreatedImage = previewImages
       } catch (error) {
         errTimes++
         await session.abortTransaction();
@@ -64,21 +58,19 @@ export async function saveImage(req, res, next) {
         if (errTimes > 10) { throw error }
       }
     }
-    await s3Service.uploadImage(originalFullPath, originalImageBuffer);
-    if (req.isPreview) {
-      const previewImageBuffer = await processImage(buffer, format, true);
-      await s3Service.uploadImage(previewFullPath, previewImageBuffer);
-    }
+    await s3Service.uploadImage(originalFullPath, bigImageBuffer, mimetype);
+
+
     ResponseHandler.successObject(res, "", undefined, 201);
     await session.commitTransaction();
   } catch (error) {
-    // 因為如果 while  那段有問題，就不能再跑 abort
+    // 因為如果 while  那段有問題，就不能在跑 abort
     if (session.inTransaction()) {
       await session.abortTransaction();
     }
     throw error;
   } finally {
-    // 因為如果 while  那段有問題，就不能再跑 end
+    // 因為如果 while  那段有問題，就不能在跑 end
     if (!session.hasEnded) {
       await session.endSession();
     }
