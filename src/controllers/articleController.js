@@ -82,7 +82,6 @@ export async function updateArticle(req, res) {
         if (originalImage) {
           // 2. 
           if (!originalImage.isPreview) {
-
             const previewFullPath = originalImage.fullPath.replace("original/", "preview/");
             const previewImage = await previewImageService.findPreviewImageIgnoreDeleteByfullPath(previewFullPath)
             // 4.
@@ -99,7 +98,7 @@ export async function updateArticle(req, res) {
           }
         }
       }
-      await previewImageService.bulkUpdateImageListByIdSetPreview(req.updateImageList, session)
+      await imageService.bulkUpdateImageListByIdSetPreview(req.updateImageList, session)
     }
     ResponseHandler.successObject(res, "articleUpdated", updatedArticle, 200);
     await session.commitTransaction();

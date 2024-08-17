@@ -24,7 +24,7 @@ async function bulkUpdateImageListByIdSetPreview(updateImageList, session) {
       update: { $set: { isPreview: image.isPreview } }
     }
   }));
-  await imageRepository.bulkWrite(updates, { session });
+  await imageRepository.bulkWriteImage(updates, { session });
 }
 
 

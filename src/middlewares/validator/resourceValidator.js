@@ -21,6 +21,11 @@ function validAllFieldsPresent(fields) {
 }
 
 export const validateCreateArticle = (req, res, next) => {
+  basicValidateArticle(req)
+  next()
+};
+
+function basicValidateArticle(req) {
   const { petType, color, content, location, lostDate, lostCityCode, lostDistrict, hasReward, rewardAmount, hasMicrochip } = req.body;
 
   const mustInputFields = { petType, color, content, location, lostDate, lostCityCode, lostDistrict, hasReward, hasMicrochip };
@@ -38,11 +43,10 @@ export const validateCreateArticle = (req, res, next) => {
   articleValidator.validateHasReward(hasReward)
   articleValidator.validateRewardAmount(hasReward, rewardAmount);
   articleValidator.validateHasMicrochip(hasMicrochip);
-  next()
-};
+}
 
 export const validateUpdateArticle = (req, res, next) => {
-  validateCreateArticle(req, res, next)
+  basicValidateArticle(req)
   articleValidator.validUpdateImageList(req);
   next()
 };
