@@ -1,221 +1,188 @@
 import { expect } from 'chai';
 import mongoose from 'mongoose'
-import { trusted } from 'mongoose'
 import request from 'supertest';
-import sinon from 'sinon';
 import bcrypt from 'bcrypt'
+import sinon from 'sinon';
 
 import { app } from '../testApp.js'; // Import from the setup file
-import s3Service from '../../src/services/s3Service.js';
 import User from '../../src/models/userModel.js';
 import Image from '../../src/models/imageModel.js';
-// import Article from '../../src/models/articleModel.js';
+import PreviewImage from '../../src/models/previewImageModel.js';
+import Article from '../../src/models/articleModel.js';
+
+import s3Service from '../../src/services/s3Service.js';
 
 const base64Image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wcAAgEB/w7TXMIAAAAASUVORK5CYII=';
 const fakeImageBuffer = Buffer.from(base64Image, 'base64');
 const pwd = "testPASSWORD"
-const exampleFullPath = 'mocked-image-fullPath.jpg'
+const image1Id = "60ddc71d3b7f4e3a2c8d9a71"
+const image2Id = "60ddc71d3b7f4e3a2c8d9a72"
+const image3Id = "60ddc71d3b7f4e3a2c8d9a73"
+const articleValidData = {
+  petType: '貓',
+  color: '黑白',
+  hasReward: true,
+  rewardAmount: 5000,
+  hasMicrochip: true,
+  lostDate: '2024-08-01',
+  lostCityCode: 'A',
+  lostDistrict: '中山區',
+  location: {
+    type: 'Point',
+    coordinates: [121.532328, 25.040792]
+  },
+  content: '我們的貓咪失蹤了，牠的名字是小黑，牠喜歡在公園玩耍。如果有看到牠，請聯繫我們，有重賞！',
+};
 
-// describe('Image Draft Tests', function () {
-//   this.timeout(10000); // Increase timeout for the test suite
-//   let uploadImageStub;
-//   let token
-//   before(async () => {
+describe('Article Image Upload Tests', function () {
+  this.timeout(10000); // Increase timeout for the test suite
+  let uploadImageStub;
+  let token;
+  let userId;
+  let articleId;
 
-//     uploadImageStub = sinon.stub(s3Service, 'uploadImage').callsFake((fullPath, fileContent, contentType) => {
-//       return Promise.resolve(fullPath);
-//     });
-//   });
+  const pwd = 'YourTestPassword'; // Replace with your test password
 
-//   after(async () => {
-//     uploadImageStub.restore();
-//   });
+  before(async () => {
+    uploadImageStub = sinon.stub(s3Service, 'uploadImage').callsFake((fullPath, fileContent, contentType) => {
+      return Promise.resolve(fullPath);
+    });
+  });
 
-//   beforeEach(async () => {
-//     const collections = await mongoose.connection.db?.collections();
-//     if (collections) {
-//       for (let collection of collections) {
-//         await collection.deleteMany({});
-//       }
-//     }
+  after(async () => {
+    uploadImageStub.restore();
+  });
 
-//     // Create a test user
-//     const user = new User({ account: 'testaccount', password: bcrypt.hashSync(pwd, 8), nickname: 'nnnname', role: '1', safety: { nextTryAvailableAt: Date.now() } });
-//     await user.save();
-//     // Log in to get JWT token
-//     const res = await request(app)
-//       .post('/user/login') // Adjust to your login route
-//       .send({ account: 'testaccount', password: pwd });
-//     token = res.body.data.token;
-//   });
+  beforeEach(async () => {
+    // Create a test user
+    const user = new User({
+      account: 'testaccount',
+      password: bcrypt.hashSync(pwd, 8),
+      nickname: 'nnnname',
+      role: '1',
+      safety: { nextTryAvailableAt: Date.now() }
+    });
+    await user.save();
+    userId = user.id.toString();
 
-//   it('should upload an image and save to draft', async () => {
-//     const res = await request(app)
-//       .post('/image/upload/draft')
-//       .set('Authorization', `Bearer ${token}`)
-//       .attach('image', fakeImageBuffer, 'test-image.jpg');
-//     expect(res.status).to.equal(201);
-//     const newImage1 = await Image.findOne({}).lean()
-//     // 應該是完整url , 但這省略
-//     expect(res.body).to.have.property('data', newImage1.fullPath);
-//   });
+    // Log in to get JWT token
+    const res = await request(app)
+      .post('/user/login')
+      .send({ account: 'testaccount', password: pwd });
+    token = res.body.data.token;
 
-//   it('should refresh image list in draft', async () => {
-//     // 模擬已經上傳圖片，重整圖片清單
-//     const image = new Image({ fullPath: exampleFullPath });
-//     await image.save();
-//     const res = await request(app)
-//       .post('/image/refreshImageList/draft')
-//       .set('Authorization', `Bearer ${token}`)
-//       .send({ imageList: [exampleFullPath] });
-//     expect(res.status).to.equal(201);
-//     const updatedImage = await Image.findOne({ fullPath: exampleFullPath }).lean()
-//     expect(updatedImage.resourceUsageCount).to.equal(2);
-//   });
+    // Create a test article
+    const article = new Article({
+      ...articleValidData,
+      user: userId,
+    });
+    await article.save();
+    articleId = article.id.toString();
+  });
 
-//   it('模擬完整上傳圖片>建立draft>整理list', async () => {
-//     let res = await request(app)
-//       .post('/image/upload/draft')
-//       .set('Authorization', `Bearer ${token}`)
-//       .attach('image', fakeImageBuffer, 'test-image1.jpg');
-//     expect(res.status).to.equal(201);
-//     const newImage1 = await Image.findOne({}).lean()
-//     // 應該是完整url , 但這省略
-//     expect(res.body).to.have.property('data', newImage1.fullPath);
-//     //
-//     res = await request(app)
-//       .post('/image/upload/draft')
-//       .set('Authorization', `Bearer ${token}`)
-//       .attach('image', fakeImageBuffer, 'test-image2.jpg');
-//     expect(res.status).to.equal(201);
-//     const newImage2 = await Image.findOne({ _id: trusted({ $ne: newImage1._id }) }).lean()
-//     // 應該是完整url , 但這省略
-//     expect(res.body).to.have.property('data', newImage2.fullPath);
-//     expect(newImage2.resourceUsageCount).to.equal(1);
-//     // 模擬已經上傳圖片，重整圖片清單
+  afterEach(async () => {
+    const collections = await mongoose.connection.db?.collections();
+    if (collections) {
+      for (let collection of collections) {
+        await collection.deleteMany({});
+      }
+    }
+  });
 
-//     res = await request(app)
-//       .post('/image/refreshImageList/draft')
-//       .set('Authorization', `Bearer ${token}`)
-//       // 應該被去重複
-//       .send({ imageList: [newImage1.fullPath, newImage1.fullPath] });
-//     expect(res.status).to.equal(201);
-//     const updatedImage1 = await Image.findOne({ fullPath: newImage1.fullPath }).lean()
-//     expect(updatedImage1.resourceUsageCount).to.equal(1);
-//     const updatedImage2 = await Image.findOne({ fullPath: newImage2.fullPath }).lean()
-//     expect(updatedImage2.resourceUsageCount).to.equal(0);
-//   });
-// });
+  it('should upload a new image, and no preview before so add it as a preview', async () => {
+    // Insert initial images and preview images
+    const imageList = [
+      { _id: image1Id, resource: articleId, fullPath: `original/${image1Id}.jpg`, isPreview: false },
+      { _id: image2Id, resource: articleId, fullPath: `original/${image2Id}.jpg`, isPreview: false },
+    ];
+    await Image.insertMany(imageList);
+    const res = await request(app)
+      .post(`/image/upload/article/${articleId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .field('isPreview', "true")
+      .attach('image', fakeImageBuffer, 'test-image1.jpg');
+    const newImageOriginalFullPath = res.body.data.fullPath
+    const newImagePreviewFullPath = newImageOriginalFullPath.replace("original/", "preview/");
+    expect(res.status).to.equal(201);
 
+    const images = await Image.find({ resource: articleId, isDelete: false }).lean();
+    expect(images.length).to.be.equal(3);
 
+    const previewImages = await PreviewImage.find({ resource: articleId, isDelete: false }).lean();
+    expect(previewImages.length).to.be.equal(1);
+    expect(previewImages[0].fullPath).to.be.equal(newImagePreviewFullPath);
+  });
 
-// describe('Image ArticleUpdateDraft Tests', function () {
-//   this.timeout(10000); // Increase timeout for the test suite
-//   let fakeBoardId = "66b00e546825dddd54b0f745"
-//   let uploadImageStub;
-//   let token
-//   let articleId
-//   let userId
-//   before(async () => {
+  it('should upload a new image, but already have preview, so keep original', async () => {
+    // Insert initial images and preview images
+    const imageList = [
+      { _id: image1Id, resource: articleId, fullPath: `original/${image1Id}.jpg`, isPreview: true },
+      { _id: image2Id, resource: articleId, fullPath: `original/${image2Id}.jpg`, isPreview: false },
+    ];
+    await Image.insertMany(imageList);
 
-//     uploadImageStub = sinon.stub(s3Service, 'uploadImage').callsFake((fullPath, fileContent, contentType) => {
-//       return Promise.resolve(fullPath);
-//     });
-//   });
+    const previewImageList = [
+      { image: image1Id, resource: articleId, fullPath: `preview/${image1Id}.jpg`, isDelete: false },
+    ];
+    await PreviewImage.insertMany(previewImageList);
 
-//   after(async () => {
-//     uploadImageStub.restore();
-//   });
+    const res = await request(app)
+      .post(`/image/upload/article/${articleId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .field('isPreview', "true")
+      .attach('image', fakeImageBuffer, 'test-image1.jpg');
+    const newImageOriginalFullPath = res.body.data.fullPath
+    expect(res.status).to.equal(201);
 
-//   beforeEach(async () => {
-//     const collections = await mongoose.connection.db?.collections();
-//     if (collections) {
-//       for (let collection of collections) {
-//         await collection.deleteMany({});
-//       }
-//     }
+    const images = await Image.find({ resource: articleId, isDelete: false }).lean();
+    expect(images.length).to.be.equal(3);
 
-//     // ********create user and get token***********
-//     const user = new User({ account: 'testaccount', password: bcrypt.hashSync(pwd, 8), nickname: 'nnnname', role: '1', safety: { nextTryAvailableAt: Date.now() } });
-//     await user.save();
-//     userId = user._id.toString()
-//     const res = await request(app)
-//       .post('/user/login')
-//       .send({ account: 'testaccount', password: pwd });
-//     token = res.body.data.token;
-//     // ********create article***********
-//     const articleData = {
-//       board: fakeBoardId,
-//       user: userId,
-//       lang: "zh-TW",
-//       privacy: "0",
-//       title: "article title",
-//       content: "article content tttttttttttttttttt.",
-//     }
-//     // Create a test user
-//     const article = new Article(articleData);
-//     await article.save();
-//     articleId = article._id.toString()
+    const previewImages = await PreviewImage.find({ resource: articleId, isDelete: false }).lean();
+    expect(previewImages.length).to.be.equal(1);
+    expect(previewImages[0].fullPath).to.be.equal(`preview/${image1Id}.jpg`);
+    expect(previewImages[0].image.toString()).to.be.equal(image1Id);
+  });
+
+  it('max 3 image, will throw error', async () => {
+    // Insert initial images and preview images
+    const imageList = [
+      { _id: image1Id, resource: articleId, fullPath: `original/${image1Id}.jpg`, isPreview: true },
+      { _id: image2Id, resource: articleId, fullPath: `original/${image2Id}.jpg`, isPreview: false },
+      { _id: image3Id, resource: articleId, fullPath: `original/${image3Id}.jpg`, isPreview: false },
+    ];
+    await Image.insertMany(imageList);
+    const previewImageList = [
+      { image: image1Id, resource: articleId, fullPath: `preview/${image1Id}.jpg`, isDelete: false },
+    ];
+    await PreviewImage.insertMany(previewImageList);
+    const res = await request(app)
+      .post(`/image/upload/article/${articleId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .field('isPreview', "true")
+      .attach('image', fakeImageBuffer, 'test-image1.jpg');
+    expect(res.status).to.equal(422);
+    expect(res.body).to.haveOwnProperty('message');
+    expect(res.body.message).to.be.equal("tooManyImages");
+  });
 
 
+  it('If first image of article, will force set as preview image', async () => {
+    const res = await request(app)
+      .post(`/image/upload/article/${articleId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .field('isPreview', "false")
+      .attach('image', fakeImageBuffer, 'test-image1.jpg');
+    const newImageOriginalFullPath = res.body.data.fullPath
+    const newImagePreviewFullPath = newImageOriginalFullPath.replace("original/", "preview/");
+    expect(res.status).to.equal(201);
 
-//   });
-//   // articleUpdateDraft
+    const images = await Image.find({ resource: articleId, isDelete: false }).lean();
+    expect(images.length).to.be.equal(1);
+    expect(images[0].fullPath).to.be.equal(newImageOriginalFullPath);
+    expect(images[0].isPreview).to.be.true;
 
-//   it('should upload an image and save to articleUpdateDraft', async () => {
-//     const res = await request(app)
-//       .post('/image/upload/articleUpdateDraft/' + articleId)
-//       .set('Authorization', `Bearer ${token}`)
-//       .attach('image', fakeImageBuffer, 'test-image.jpg');
-//     expect(res.status).to.equal(201);
-//     const newImage1 = await Image.findOne({}).lean()
-//     // 應該是完整url , 但這省略
-//     expect(res.body).to.have.property('data', newImage1.fullPath);
-//   });
-
-//   it('should refresh image list in draft', async () => {
-//     // 模擬已經上傳圖片，重整圖片清單
-//     const image = new Image({ fullPath: exampleFullPath });
-//     await image.save();
-//     const res = await request(app)
-//       .post('/image/refreshImageList/articleUpdateDraft/' + articleId)
-//       .set('Authorization', `Bearer ${token}`)
-//       .send({ imageList: [exampleFullPath] });
-//     expect(res.status).to.equal(201);
-//     const updatedImage = await Image.findOne({ fullPath: exampleFullPath }).lean()
-//     expect(updatedImage.resourceUsageCount).to.equal(2);
-//   });
-
-//   it('模擬完整上傳圖片>建立draft>整理list', async () => {
-//     let res = await request(app)
-//       .post('/image/upload/articleUpdateDraft/' + articleId)
-//       .set('Authorization', `Bearer ${token}`)
-//       .attach('image', fakeImageBuffer, 'test-image1.jpg');
-//     expect(res.status).to.equal(201);
-//     const newImage1 = await Image.findOne({}).lean()
-//     // 應該是完整url , 但這省略
-//     expect(res.body).to.have.property('data', newImage1.fullPath);
-//     //
-//     res = await request(app)
-//       .post('/image/upload/articleUpdateDraft/' + articleId)
-//       .set('Authorization', `Bearer ${token}`)
-//       .attach('image', fakeImageBuffer, 'test-image2.jpg');
-//     expect(res.status).to.equal(201);
-//     const newImage2 = await Image.findOne({ _id: trusted({ $ne: newImage1._id }) }).lean()
-//     // 應該是完整url , 但這省略
-//     expect(res.body).to.have.property('data', newImage2.fullPath);
-//     expect(newImage2.resourceUsageCount).to.equal(1);
-//     // 模擬已經上傳圖片，重整圖片清單
-
-//     res = await request(app)
-//       .post('/image/refreshImageList/articleUpdateDraft/' + articleId)
-//       .set('Authorization', `Bearer ${token}`)
-//       // 應該被去重複
-//       .send({ imageList: [newImage1.fullPath, newImage1.fullPath] });
-//     expect(res.status).to.equal(201);
-//     const updatedImage1 = await Image.findOne({ fullPath: newImage1.fullPath }).lean()
-//     expect(updatedImage1.resourceUsageCount).to.equal(1);
-//     const updatedImage2 = await Image.findOne({ fullPath: newImage2.fullPath }).lean()
-//     expect(updatedImage2.resourceUsageCount).to.equal(0);
-//   });
-// });
+    const previewImages = await PreviewImage.find({ resource: articleId, isDelete: false }).lean();
+    expect(previewImages.length).to.be.equal(1);
+    expect(previewImages[0].fullPath).to.be.equal(newImagePreviewFullPath);
+  });
+});
