@@ -7,25 +7,29 @@ export async function processImage(buffer, format, isPreview = false) {
     if (['tiff', 'svg+xml'].includes(format)) {
       format = 'jpeg';
     }
-    const allowedFormats = ['jpeg', 'png', 'webp'];
 
+    const allowedFormats = ['jpeg', 'png', 'webp'];
     if (!allowedFormats.includes(format)) {
       throw new ValidationObjectError("InvalidImageFormat", { format: "jpg,png,webp" });
     }
-    let result
-    if (isPreview) {
-      result = await sharp(buffer)
-        .toFormat('webp', { quality: 80 })
-        .resize({ width: 1080, height: 1080, fit: 'inside', withoutEnlargement: true })
-        .toBuffer();
-    } else {
-      result = await sharp(buffer)
-        .toFormat('webp', { quality: 60 })
-        .resize({ width: 480, height: 480, fit: 'inside', withoutEnlargement: true })
-        .toBuffer();
-    }
-    return result
+
+    const quality = isPreview ? 80 : 60;
+    const width = isPreview ? 1080 : 480;
+    const height = isPreview ? 1080 : 480;
+
+    const result = await getSharpInstance(buffer, 'webp', quality, width, height).toBuffer();
+    return result;
   } catch (error) {
-    throw new UnknownError(error, "src/utils/image.js")
+    throw new UnknownError(error, "src/utils/image.js");
+  }
+}
+
+export function getSharpInstance(buffer = null, format = 'webp', quality = 60, width = 480, height = 480) {
+  if (buffer === null) {
+    return sharp().toFormat(format, { quality })
+      .resize({ width, height, fit: 'inside', withoutEnlargement: true });
+  } else {
+    return sharp(buffer).toFormat(format, { quality })
+      .resize({ width, height, fit: 'inside', withoutEnlargement: true })
   }
 }

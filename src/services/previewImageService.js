@@ -11,18 +11,19 @@ async function deletePreviewImageByArticleIdSession(strArticleId, session) {
 }
 
 
-export async function handlePreviewImage(strArticleId, previewFullPath, session) {
+export async function handlePreviewImage(strArticleId, strImageId,previewFullPath, session) {
   //預覽圖只有一張，所以把舊的改成刪除
   await deletePreviewImageByArticleIdSession(strArticleId, session);
   const newPreviewImage = {
     fullPath: previewFullPath,
+    image: strImageId,
     resource: strArticleId
   };
   await createPreviewImageSession(newPreviewImage, session);
 }
 
 async function findPreviewImageIgnoreDeleteByfullPath(strFullPath, selectString = "isDelete", isLean = false) {
-  return await imageRepository.findOnePreviewImage({ fullPath: strFullPath }, selectString, isLean)
+  return await previewImageRepository.findOnePreviewImage({ fullPath: strFullPath }, selectString, isLean)
 }
 
 

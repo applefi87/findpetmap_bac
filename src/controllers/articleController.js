@@ -9,6 +9,7 @@ import ValidateObjectError from '../infrastructure/errors/ValidationObjectError.
 import imageService from '../services/imageService.js'
 import previewImageService from '../services/previewImageService.js'
 import articleService from '../services/articleService.js'
+import s3Service from '../services/s3Service.js'
 import { processImage } from '../utils/image.js';
 
 // import { initializeDraftAndSave } from '../services/draft.js'
@@ -66,18 +67,18 @@ export async function updateArticle(req, res) {
     session.startTransaction();
     const updatedArticle = await articleService.updateArticleSession(strArticleId, updateData, session);
     const keepImageIdList = req.updateImageList.map(image => image.id);
-    await imageService.deleteImageListByExceptIdListSession(keepImageIdList, false, session);
+    await imageService.deleteImageListByExceptIdListSession(keepImageIdList, session);
     if (req.updateImageList.length > 0) {
       // 假設進來的req.updateImageList 有2張圖 
       // 1.全無預覽(跳過) : 跳過，就讓預覽圖保留反正後續步驟會把它改掉，沒改掉也不影響
       // 2.不動(一個有預覽) : 偵測原本isPreview=true的圖片，又是isPreview=true=>不動
       // 3.增加預覽(沒有): 標準流程，建立預覽圖後更新
       // 4.重回預覽(原本有，但目前預覽圖是刪除狀態): 應該要建預覽圖，但是查詢該圖片fullPath已經有了(抓id)，所以把該resource所有預覽圖改isDelete=true & 對應id的改isDelete=false 就可以還原
-     
+
       // 1.
-      const previewImage = req.updateImageList.find(image => image.isPreview);
-      if (previewImage) {
-        const originalImage = await imageService.findImageByIdSession(previewImage.id, "isPreview", true);
+      const isPreviewImage = req.updateImageList.find(image => image.isPreview);
+      if (isPreviewImage) {
+        const originalImage = await imageService.findImageByIdSession(isPreviewImage.id, "isPreview fullPath", true);
         // 意外情況，用戶說有圖片但沒有，也不報錯持接跳過
         if (originalImage) {
           // 2. 
@@ -85,14 +86,16 @@ export async function updateArticle(req, res) {
             const previewFullPath = originalImage.fullPath.replace("original/", "preview/");
             const previewImage = await previewImageService.findPreviewImageIgnoreDeleteByfullPath(previewFullPath)
             // 4.
+            console.log("previewImage:", previewImage);
             if (previewImage) {
+              await previewImageService.deletePreviewImageByArticleIdSession(strArticleId, session)
               previewImage.isDelete = false
               await previewImage.save();
-              await imageService.updateImageSession(previewImage.id, { isPreview: false }, session)
             } else {
               // 3.
-              await previewImageService.handlePreviewImage(strArticleId, previewFullPath, session)
-              const previewImageBuffer = await processImage(buffer, format, true);
+              await previewImageService.handlePreviewImage(strArticleId, isPreviewImage.id, previewFullPath, session)
+              console.log(originalImage.fullPath, previewFullPath);
+              const previewImageBuffer = await s3Service.processAndUploadImage(originalImage.fullPath, previewFullPath);
               await s3Service.uploadImage(previewFullPath, previewImageBuffer);
             }
           }

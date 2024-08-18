@@ -1,4 +1,4 @@
-import { trusted } from 'mongoose'
+import { trusted ,sanitizeFilter} from 'mongoose'
 import imageRepository from '../repositories/imageRepository.js'
 
 async function findImageListByArticleId(strArticleId, selectString = undefined, isLean = false) {

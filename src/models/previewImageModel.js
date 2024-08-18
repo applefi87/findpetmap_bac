@@ -22,10 +22,6 @@ const imageSchema = new mongoose.Schema({
     ref: 'Image',
     required: true,
   },
-  isPreview: {
-    type: Boolean,
-    default: false
-  },
   isDelete: {
     type: Boolean,
     default: false

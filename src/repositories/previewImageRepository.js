@@ -2,7 +2,7 @@ import { trusted } from 'mongoose'
 import PreviewImage from '../models/previewImageModel.js'
 import DatabaseError from '../infrastructure/errors/DatabaseError.js';
 
-async function createPreviewIImage(image, options) {
+async function createPreviewImage(image, options) {
   try {
     return await PreviewImage.create(image, options)
   } catch (error) {
@@ -26,4 +26,4 @@ async function findOnePreviewImage(filter, selectionString = undefined, isLean =
   }
 }
 
-export default { createPreviewIImage, updateManyPreviewImage,findOnePreviewImage }
+export default { createPreviewImage, updateManyPreviewImage,findOnePreviewImage }
