@@ -1,29 +1,21 @@
-// import mongoose from 'mongoose';
+import mongoose from 'mongoose';
 import imageService from '../services/imageService.js'
 import previewImageService from '../services/previewImageService.js'
-// import draftService from '../services/draftService.js'
-// import articleUpdateDraftService from '../services/articleUpdateDraftService.js'
 import s3Service from '../services/s3Service.js'
 import generateFullPath from '../utils/string/generateDateFileName.js'
-// // import Draft from '../models/draftModel.js';
-// // import TempImageList from '../models/tempImageList.js';
 // // import User from '../models/user.js';
 // // import ArticleImageList from '../models/articleImageList.js';
 // // import { DatabaseError } from '../errors.js';
 // // import { deleteImageFromImgur } from '../services/image.js'
 // import imageConfigs from '../infrastructure/configs/imageConfigs.js'
-// import ResponseHandler from '../middlewares/ResponseHandler.js';
+import ResponseHandler from '../middlewares/ResponseHandler.js';
 // import ValidateObjectError from '../infrastructure/errors/ValidationObjectError.js'
 import { processImage } from '../utils/image.js';
 // import { filterUniqueStringArray } from '../infrastructure/utils/stringTool.js'
 
 export async function saveImage(req, res, next) {
   const strArticleId = req.params.id
-  const newImage = {
-    fullPath: "",
-    resource: strArticleId
-  }
-  const newPreviewImage = {
+  const newImageObj = {
     fullPath: "",
     resource: strArticleId
   }
@@ -34,6 +26,7 @@ export async function saveImage(req, res, next) {
   let preFullPath;
   let originalFullPath;
   let previewFullPath;
+  let newImage
   const { buffer, mimetype } = req.file;
   const format = mimetype.split('/')[1];
   // 先跑，因為最常是檔案類型有問題
@@ -45,22 +38,25 @@ export async function saveImage(req, res, next) {
         preFullPath = generateFullPath(format);
         // **完整圖**
         originalFullPath = "original/" + preFullPath;
-        newImage.fullPath = originalFullPath;
+        newImageObj.fullPath = originalFullPath;
+        newImageObj.isPreview = req.isPreview;
         //直接透過創建來避免unique的問題
         session = await mongoose.startSession();
         session.startTransaction();
-        const [images] = await imageService.createImageSession(newImage, session);
+        [newImage] = await imageService.createImageSession(newImageObj, session);
         // **預覽圖(如果有需要)**
         if (req.isPreview) {
           previewFullPath = `preview/${preFullPath}`;
-          await previewImageService.handlePreviewImage(strArticleId, previewFullPath, session)
+          await previewImageService.handlePreviewImage(strArticleId, newImage._id.toString(), previewFullPath, session)
         }
         // 反正有問題會直接報錯，不會跑到這
-        isSuccessCreatedImage = images
+        isSuccessCreatedImage = newImage
       } catch (error) {
         errTimes++
-        await session.abortTransaction();
-        await session.endSession();
+        if (session?.inTransaction()) {
+          await session.abortTransaction();
+          await session.endSession();
+        }
         if (errTimes > 10) { throw error }
       }
     }
@@ -69,17 +65,17 @@ export async function saveImage(req, res, next) {
       const previewImageBuffer = await processImage(buffer, format, true);
       await s3Service.uploadImage(previewFullPath, previewImageBuffer);
     }
-    ResponseHandler.successObject(res, "", undefined, 201);
+    ResponseHandler.successObject(res, "", newImage, 201);
     await session.commitTransaction();
   } catch (error) {
     // 因為如果 while  那段有問題，就不能再跑 abort
-    if (session.inTransaction()) {
+    if (session?.inTransaction()) {
       await session.abortTransaction();
     }
     throw error;
   } finally {
     // 因為如果 while  那段有問題，就不能再跑 end
-    if (!session.hasEnded) {
+    if (session && !session.hasEnded) {
       await session.endSession();
     }
   }

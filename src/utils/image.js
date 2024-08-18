@@ -17,8 +17,7 @@ export async function processImage(buffer, format, isPreview = false) {
     const width = isPreview ? 1080 : 480;
     const height = isPreview ? 1080 : 480;
 
-    const result = await getSharpInstance(buffer, 'webp', quality, width, height).toBuffer();
-    return result;
+    return getSharpInstance(buffer, 'webp', quality, width, height).toBuffer();
   } catch (error) {
     throw new UnknownError(error, "src/utils/image.js");
   }

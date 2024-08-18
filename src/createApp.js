@@ -1,5 +1,5 @@
 //設定error追蹤的深度倒數層數
-Error.stackTraceLimit = 6
+Error.stackTraceLimit = 15
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import express from 'express';
@@ -8,7 +8,7 @@ import rateLimit from 'express-rate-limit';
 import emailRouter from "./routes/emailRoute.js"
 import userRouter from "./routes/userRoute.js"
 import articleRouter from "./routes/articleRoute.js"
-// import imageRouter from "./routes/imageRoute.js"
+import imageRouter from "./routes/imageRoute.js"
 import ResponseHandler from './middlewares/ResponseHandler.js';
 import createI18nMiddleware from './middlewares/createI18nMiddleware.js';
 import './passport/passport.js'
@@ -91,7 +91,7 @@ const createApp = () => {
   app.use('/user', userRouter);
   app.use('/email', emailRouter);
   app.use('/article', articleRouter);
-  // app.use('/image', imageRouter);
+  app.use('/image', imageRouter);
 
   return app;
 };

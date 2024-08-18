@@ -8,7 +8,7 @@ const storage = multer.memoryStorage();
 // Multer middleware to handle single image upload
 const uploadSingleImage = multer({
   storage,
-  limits: { files: 1 } // Limit to 1 file
+  limits: { files: 1 }
 }).single('image');
 
 const handleSingleImageUpload = (req, res, next) => {
