@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { languageValues } from "../infrastructure/configs/languageOptions.js"
 import * as articleValidator from "../utils/validator/articleValidator.js"
 import articleConfigs from "../infrastructure/configs/articleConfigs.js"
 import { cityCodeList } from "../infrastructure/configs/cityConfigs.js"
@@ -32,32 +31,11 @@ const schema = new mongoose.Schema({
     ref: 'User',
     required: [true, '缺少創建者']
   },
-  // state: {
-  //   type: String,
-  //   enum: ['協尋中', '已找到', '結束'],
-  //   required: true,
-  //   default: '協尋中'
-  // },
   petType: {
     type: String,
     enum: articleConfigs.petType,
     required: true
   },
-  // breed: {
-  //   type: String,
-  //   required: true,
-  //   validate: {
-  //     validator: function (value) {
-  //       if (this.petType === '貓') {
-  //         return catBreedEnum.includes(value);
-  //       } else if (this.petType === '狗') {
-  //         return dogBreedEnum.includes(value);
-  //       }
-  //       return false;
-  //     },
-  //     message: props => `${props.value} 不是所選寵物類型的有效品種`
-  //   }
-  // },
   color: {
     type: String,
     validate: {

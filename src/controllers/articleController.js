@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import ResponseHandler from '../middlewares/ResponseHandler.js';
+import { calculateDistance } from '../infrastructure/utils/geoCalculationTool.js';
 // import Board from '../models/board.js';
 // import ArticleImageList from '../models/articleImageList.js';
 // import Draft from '../models/draft.js';
@@ -146,12 +147,51 @@ export const getArticleDetail = async (req, res, next) => {
   }
 };
 
-export const searchArticleList = async (req, res, next) => {
-  const skip = req.body.skip
-  const limit = req.body.limit
-  const validatedSkip = (typeof skip === "number" && skip >= 0) ? skip : 0
-  const validatedLimit = limit < 50 && limit > 5 ? limit : 20
+// export const searchArticleList = async (req, res, next) => {
+//   const skip = req.body.skip
+//   const limit = req.body.limit
+//   const validatedSkip = (typeof skip === "number" && skip >= 0) ? skip : 0
+//   const validatedLimit = limit < 50 && limit > 5 ? limit : 20
 
-  const formatedArticleListWithBoard = await articleService.getArticleList(req.body, validatedSkip, validatedLimit, req.user?._id.toString())
-  ResponseHandler.successObject(res, "", { articleList: formatedArticleListWithBoard });
+//   const formatedArticleListWithBoard = await articleService.getArticleList(req.body, validatedSkip, validatedLimit, req.user?._id.toString())
+//   ResponseHandler.successObject(res, "", { articleList: formatedArticleListWithBoard });
+// };
+export const searchArticleList = async (req, res, next) => {
+  try {
+    const { bottomLeft, topRight, skip = 0, limit = 20 } = req.body;
+
+    // Validate Coordinates
+    if (!bottomLeft || !topRight) {
+      return res.status(400).json({ message: "Invalid coordinates provided" });
+    }
+
+    // Calculate width and height to ensure the region isn't too large (optional)
+    const maxDistance = 50000; // 50 km, for example
+    const bufferMultiplier = 1.5; // Add a buffer to the search area
+
+    // Adjust bottomLeft and topRight to include a buffer
+    const adjustedBottomLeft = {
+      lat: bottomLeft.lat - (topRight.lat - bottomLeft.lat) * (bufferMultiplier - 1) / 2,
+      lng: bottomLeft.lng - (topRight.lng - bottomLeft.lng) * (bufferMultiplier - 1) / 2,
+    };
+
+    const adjustedTopRight = {
+      lat: topRight.lat + (topRight.lat - bottomLeft.lat) * (bufferMultiplier - 1) / 2,
+      lng: topRight.lng + (topRight.lng - bottomLeft.lng) * (bufferMultiplier - 1) / 2,
+    };
+
+    // Rough estimation to check if the region is too large
+    const estimatedDistance = calculateDistance(adjustedBottomLeft.lat, adjustedBottomLeft.lng, adjustedTopRight.lat, adjustedTopRight.lng);
+
+    if (estimatedDistance > maxDistance) {
+      return res.status(400).json({ message: "The requested area is too large." });
+    }
+
+    // Query the database using the adjusted coordinates
+    const articles = await articleService.getArticleList(adjustedBottomLeft, adjustedTopRight, skip, limit, req.user?._id.toString());
+    // If articles are found, send them back
+    return res.json({ message: "success",success: true, data: { articles: articles, region: { bottomLeft: adjustedBottomLeft, topRight: adjustedTopRight } } })
+  } catch (error) {
+    next(error);
+  }
 };
