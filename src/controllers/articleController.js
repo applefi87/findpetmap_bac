@@ -158,8 +158,7 @@ export const getArticleDetail = async (req, res, next) => {
 // };
 export const searchArticleList = async (req, res, next) => {
   try {
-    const { bottomLeft, topRight, skip = 0, limit = 20 } = req.body;
-
+    const { bottomLeft, topRight, skip = 0, limit = 1000 } = req.body;
     // Validate Coordinates
     if (!bottomLeft || !topRight) {
       return res.status(400).json({ message: "Invalid coordinates provided" });

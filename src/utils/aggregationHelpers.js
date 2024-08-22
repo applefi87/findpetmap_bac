@@ -83,14 +83,14 @@ export const generateGetArticleListPipeline = (bottomLeft, topRight, filter, ski
         ...filter,
       },
     },
-    {
-      $lookup: {
-        from: 'image',
-        localField: '_id',
-        foreignField: 'article',
-        as: 'images',
-      },
-    },
+    // {
+    //   $lookup: {
+    //     from: 'image',
+    //     localField: '_id',
+    //     foreignField: 'article',
+    //     as: 'images',
+    //   },
+    // },
     {
       $project: {
         _id: 1,
@@ -103,7 +103,7 @@ export const generateGetArticleListPipeline = (bottomLeft, topRight, filter, ski
         lostCityCode: 1,
         lostDistrict: 1,
         title: 1,
-        images: 1,
+        // images: 1,
         location: 1,
       },
     },

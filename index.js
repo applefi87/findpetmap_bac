@@ -21,12 +21,12 @@ server.listen(port, () => {
 export default server;
 
 // Haversine formula to calculate distance
-function getRandomCoordinates(center, minRadiusInKm=0.001, maxRadiusInKm=10) {
+function getRandomCoordinates(center, minRadiusInMeters = 1, maxRadiusInMeters = 20000) {
   const { latitude, longitude } = center;
 
-  // Convert radius from kilometers to degrees
-  const minRadiusInDegrees = minRadiusInKm / 111; // Rough conversion
-  const maxRadiusInDegrees = maxRadiusInKm / 111; // Rough conversion
+  // Convert radius from meters to degrees
+  const minRadiusInDegrees = minRadiusInMeters / 111320; // Conversion based on Earth's radius in meters
+  const maxRadiusInDegrees = maxRadiusInMeters / 111320; // Conversion based on Earth's radius in meters
 
   // Generate random radius within the specified range
   const randomRadius = minRadiusInDegrees + (Math.random() * (maxRadiusInDegrees - minRadiusInDegrees));
@@ -42,21 +42,20 @@ function getRandomCoordinates(center, minRadiusInKm=0.001, maxRadiusInKm=10) {
   return [newLng, newLat]; // Returns [longitude, latitude] as required by GeoJSON
 }
 
-
 // Center location
 const center = {
-  latitude: 25.071489314010798,
-  longitude: 121.58509254432573
+  latitude: 25.07148931,
+  longitude: 121.5850925
 };
 
 const radiusInKm = 50; // 50 km radius
 // Generate 100 random locations
-const generateRandomLocations = ()=>{
-  return Array.from({ length: 1000 }, () => {
+const generateRandomLocations = () => {
+  return Array.from({ length: 100 }, () => {
     return {
       location: {
         type: 'Point',
-        coordinates: getRandomCoordinates(center, radiusInKm)
+        coordinates: getRandomCoordinates(center)
       },
       // You can add other fields to each generated document here
       user: new mongoose.Types.ObjectId(), // Dummy ObjectId
@@ -77,7 +76,8 @@ const generateRandomLocations = ()=>{
 }
 
 // To insert these random locations into your MongoDB using Mongoose:
-
+// const newArr = generateRandomLocations()
+// console.log(newArr);
 // Article.insertMany(generateRandomLocations())
 //   .then(() => {
 //     console.log('Random articles inserted successfully');
