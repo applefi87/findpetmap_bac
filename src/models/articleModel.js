@@ -17,6 +17,7 @@ const pointSchema = new mongoose.Schema({
     type: [Number],
     validator: function (value) {
       return value.length === 2 &&
+      // 注意與備註，後台統一輸入都是先經再緯
         value[0] >= -180 && value[0] <= 180 &&  // Longitude range
         value[1] >= -90 && value[1] <= 90;      // Latitude range
     },

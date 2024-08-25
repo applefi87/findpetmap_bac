@@ -136,16 +136,26 @@ export const deleteArticle = async (req, res) => {
 
 export const getArticleDetail = async (req, res, next) => {
   const strArticleId = req.params.id
-  const formatedArticleListWithBoard = await articleService.getArticleById(
+  const article = await articleService.getArticleById(
     strArticleId,
     null,
     true)
-  if (!!formatedArticleListWithBoard) {
-    ResponseHandler.successObject(res, "", { article: formatedArticleListWithBoard });
+  formatArticleWithIsSelf(article, req._id)
+
+  if (!!article) {
+    ResponseHandler.successObject(res, "", { article: article });
   } else {
     throw new ValidateObjectError("noArticle");
   }
 };
+
+const formatArticleWithIsSelf = (articleDocument, userId) => {
+  if (articleDocument && userId) {
+    if (articleDocument.user._id.toString() === userId) {
+      articleDocument.isSelf = true
+    }
+  }
+}
 
 // export const searchArticleList = async (req, res, next) => {
 //   const skip = req.body.skip
@@ -161,7 +171,7 @@ export const searchArticleList = async (req, res, next) => {
     const { bottomLeft, topRight, skip = 0, limit = 1000 } = req.body;
     // Validate Coordinates
     if (!bottomLeft || !topRight) {
-      return res.status(400).json({ message: "Invalid coordinates provided" });
+      throw new ValidateObjectError("validation.invalidType");
     }
 
     // Calculate width and height to ensure the region isn't too large (optional)
@@ -181,15 +191,13 @@ export const searchArticleList = async (req, res, next) => {
 
     // Rough estimation to check if the region is too large
     const estimatedDistance = calculateDistance(adjustedBottomLeft.lat, adjustedBottomLeft.lng, adjustedTopRight.lat, adjustedTopRight.lng);
-
     if (estimatedDistance > maxDistance) {
-      return res.status(400).json({ message: "The requested area is too large." });
+      throw new ValidateObjectError("searchAreaTooLarge");
     }
-
     // Query the database using the adjusted coordinates
     const articles = await articleService.getArticleList(adjustedBottomLeft, adjustedTopRight, skip, limit, req.user?._id.toString());
     // If articles are found, send them back
-    return res.json({ message: "success",success: true, data: { articles: articles, region: { bottomLeft: adjustedBottomLeft, topRight: adjustedTopRight } } })
+    return ResponseHandler.successObject(res, "", { articles: articles, region: { bottomLeft: adjustedBottomLeft, topRight: adjustedTopRight } });
   } catch (error) {
     next(error);
   }

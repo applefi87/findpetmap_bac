@@ -63,6 +63,27 @@ const schema = new mongoose.Schema({
     type: String,
     maxlength: [50, 'profileImage Url longer than 50!'],
   },
+  info: {
+    contactInfo: {
+      type: String,
+    }
+    // living: {
+    //   type: String,
+    //   maxlength: [100, '必須 100 個字以下'],
+    // },
+    // job: {
+    //   type: String,
+    //   maxlength: [30, '必須 30 個字以下'],
+    // },
+    // interest: {
+    //   type: String,
+    //   maxlength: [100, '必須 100 個字以下'],
+    // },
+    // others: {
+    //   type: String,
+    //   maxlength: [100, '必須 100 個字以下'],
+    // }
+  },
   record: {
     count: {
       //之後再考慮文章是否分對自己的/對別人的差異
