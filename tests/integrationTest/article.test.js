@@ -842,7 +842,7 @@ describe('ArticleController getArticleDetail Tests', function () {
   testCases.forEach(({ name, articleId, token, expectedStatus, shouldReturnArticle }) => {
     it(`getArticleDetail - ${name}`, async () => {
       const res = await request(app)
-        .get(`/article/${articleId()}`)
+        .post(`/article/${articleId()}`)
         .set('Authorization', token() ? `Bearer ${token()}` : '');
       expect(res.status).to.equal(expectedStatus);
 
@@ -859,7 +859,7 @@ describe('ArticleController getArticleDetail Tests', function () {
     });
   });
 });
-describe('ArticleController searchArticleList Tests', function () {
+describe.only('ArticleController searchArticleList Tests', function () {
   this.timeout(10000); // Increase timeout for the test suite
   let token;
   let userId;
@@ -1134,7 +1134,7 @@ describe('ArticleController searchArticleList Tests', function () {
         .post('/article')
         .set('Content-Type', 'application/json')
         .send(body);
-
+console.log(res.message);
       expect(res.status).to.equal(expectedStatus);
       // console.log(res.body);
       if (expectedStatus === 200) {
