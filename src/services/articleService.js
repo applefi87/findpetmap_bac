@@ -34,19 +34,16 @@ async function createArticleSession(articleObj, session) {
 //   if (!(articleList?.length > 0)) { return [] }
 //   return articleList
 // }
-async function getArticleList(bottomLeft, topRight, skip, limit, userId) {
-  const filter = { /* Any additional filters */ };
-
-  // Generate the aggregation pipeline
+async function getArticleList(bottomLeft, topRight, filter, skip, limit, userId) {
   const pipeline = generateGetArticleListPipeline(bottomLeft, topRight, filter, skip, limit);
-
   const articleList = await articleRepository.aggregate(pipeline);
   return articleList;
 }
 
 const getArticleDetailById = async (id, selectString = undefined, isLean = false) => {
   const article = await articleRepository.getArticleById(id, selectString, isLean)
-  const images = await imageService.findImageListByArticleId(article._id, "fullPath", true)
+  if (!article) { return null }
+  const images = await imageService.findImageListByArticleId(article._id, "id fullPath isPreview", true)
   article.images = images;
   return article;
 }
@@ -61,4 +58,4 @@ async function updateArticleSession(id, articleObj, session) {
   return await articleRepository.findByIdAndUpdate(id, articleObj, { session })
 }
 
-export default { createArticleSession, getArticleList, updateArticleSession, getArticleById,getArticleDetailById }
+export default { createArticleSession, getArticleList, updateArticleSession, getArticleById, getArticleDetailById }

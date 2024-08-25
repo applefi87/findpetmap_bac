@@ -16,14 +16,15 @@ export const generateGetArticleListPipeline = (bottomLeft, topRight, filter, ski
     },
     {
       $lookup: {
-        from: 'Previewimages',
+        // 只能小寫+複數
+        from: 'previewimages',
         let: { articleId: '$_id' },
         pipeline: [
           {
             $match: {
               $expr: {
                 $and: [
-                  { $eq: ['$resource', '$$articleId'] },
+                  { $eq: ['$resource', '$$articleId'] }, // Ensure articleId is treated as ObjectId
                   { $eq: ['$isDelete', false] }, 
                 ],
               },

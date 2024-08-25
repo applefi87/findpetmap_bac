@@ -96,9 +96,7 @@ export async function updateArticle(req, res) {
             } else {
               // 3.
               await previewImageService.handlePreviewImage(strArticleId, isPreviewImage.id, previewFullPath, session)
-              console.log(originalImage.fullPath, previewFullPath);
-              const previewImageBuffer = await s3Service.processAndUploadImage(originalImage.fullPath, previewFullPath);
-              await s3Service.uploadImage(previewFullPath, previewImageBuffer);
+              await s3Service.processAndUploadImage(originalImage.fullPath, previewFullPath);
             }
           }
         }
@@ -194,7 +192,7 @@ export const searchArticleList = async (req, res, next) => {
       throw new ValidateObjectError("searchAreaTooLarge");
     }
     // Query the database using the adjusted coordinates
-    const articles = await articleService.getArticleList(adjustedBottomLeft, adjustedTopRight, skip, limit, req.user?._id.toString());
+    const articles = await articleService.getArticleList(adjustedBottomLeft, adjustedTopRight, {}, skip, limit, req.user?._id.toString());
     // If articles are found, send them back
     return ResponseHandler.successObject(res, "", { articles: articles, region: { bottomLeft: adjustedBottomLeft, topRight: adjustedTopRight } });
   } catch (error) {

@@ -3,8 +3,8 @@ import { Upload } from "@aws-sdk/lib-storage";
 import { s3Client } from "../../configs/s3Client.js";
 import { getSharpInstance } from "../utils/image.js";
 import UnknownError from '../infrastructure/errors/UnknownError.js';
-import sharp from "sharp";
 
+const defaultFormat = 'webp'
 
 class S3Service {
   constructor(bucketName) {
@@ -14,13 +14,13 @@ class S3Service {
     this.bucketName = process.env.AWS_S3_TEST_ONLY_BUCKET_NAME
   }
 
-  async uploadImage(fullPath, fileContent, contentType = "image/jpeg") {
+  async uploadImage(fullPath, fileContent, contentType) {
     try {
       const params = {
         Bucket: this.bucketName,
         Key: `${fullPath}`,
         Body: fileContent,
-        ContentType: contentType,
+        ContentType: contentType || getContentType(defaultFormat),
       };
       await s3Client.send(new PutObjectCommand(params));
       return this.getImageUrl(fullPath);
@@ -56,7 +56,7 @@ class S3Service {
       Bucket: this.bucketName,
       Key: previewFullPath,
       Body: processedStream,
-      ContentType: 'image/jpeg',
+      ContentType: getContentType(defaultFormat),
     };
     const upload = new Upload({
       client: s3Client,
@@ -64,6 +64,21 @@ class S3Service {
     });
     await upload.done();
     return `https://${this.bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${previewFullPath}`;
+  }
+}
+
+
+function getContentType(format) {
+  switch (format) {
+    case 'png':
+      return 'image/png';
+    case 'jpeg':
+    case 'jpg':
+      return 'image/jpeg';
+    case 'webp':
+      return 'image/webp';
+    default:
+      return 'image/jpeg'; // Default to JPEG if the format is unrecognized
   }
 }
 

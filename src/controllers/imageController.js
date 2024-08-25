@@ -35,7 +35,7 @@ export async function saveImage(req, res, next) {
     let errTimes = 0
     while (!isSuccessCreatedImage) {
       try {
-        preFullPath = generateFullPath(format);
+        preFullPath = generateFullPath('webp');
         // **完整圖**
         originalFullPath = "original/" + preFullPath;
         newImageObj.fullPath = originalFullPath;

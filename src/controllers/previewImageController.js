@@ -38,7 +38,7 @@ async function saveImage(req, res, next) {
     let errTimes = 0
     while (!isSuccessCreatedImage) {
       try {
-        preFullPath = generateFullPath(format);
+        preFullPath = generateFullPath('webp');
         originalFullPath = "original/" + preFullPath;
         newImage.fullPath = originalFullPath;
         //直接透過創建來避免unique的問題
@@ -58,7 +58,7 @@ async function saveImage(req, res, next) {
         if (errTimes > 10) { throw error }
       }
     }
-    await s3Service.uploadImage(originalFullPath, bigImageBuffer, mimetype);
+    await s3Service.uploadImage(originalFullPath, bigImageBuffer);
 
 
     ResponseHandler.successObject(res, "", undefined, 201);
