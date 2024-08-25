@@ -21,7 +21,7 @@ class DatabaseError extends CustomError {
                 if (data.option?.session) { data.option.session = "session" }
                 // 這樣的方式，避免mongoose異常的trace都卡在mongoose資料夾內沒參考意義
                 super(1100, null, data, "DatabaseError");
-                this.logData = mongooseError?.message
+                this.logData = mongooseError?.message || mongooseError?.logData
             }
         } catch (error) {
             return new ErrorError(error, mongooseError, data)

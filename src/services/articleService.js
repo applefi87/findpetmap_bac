@@ -1,6 +1,7 @@
 // import Mongoose from 'mongoose';
 import { trusted } from 'mongoose';
 // import Article from '../models/articleModel.js';
+import imageService from '../services/imageService.js';
 import articleRepository from '../repositories/articleRepository.js'
 // import { sanitizeArticle, sanitizeArticleList } from '../utils/sanitizePrivacy.js'
 import { generateGetArticleListPipeline } from '../utils/aggregationHelpers.js'
@@ -43,6 +44,13 @@ async function getArticleList(bottomLeft, topRight, skip, limit, userId) {
   return articleList;
 }
 
+const getArticleDetailById = async (id, selectString = undefined, isLean = false) => {
+  const article = await articleRepository.getArticleById(id, selectString, isLean)
+  const images = await imageService.findImageListByArticleId(article._id, "fullPath", true)
+  article.images = images;
+  return article;
+}
+
 
 const getArticleById = async (id, selectString = undefined, isLean = false) => {
   return await articleRepository.getArticleById(id, selectString, isLean)
@@ -53,4 +61,4 @@ async function updateArticleSession(id, articleObj, session) {
   return await articleRepository.findByIdAndUpdate(id, articleObj, { session })
 }
 
-export default { createArticleSession, getArticleList, updateArticleSession, getArticleById }
+export default { createArticleSession, getArticleList, updateArticleSession, getArticleById,getArticleDetailById }

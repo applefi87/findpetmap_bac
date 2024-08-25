@@ -136,12 +136,11 @@ export const deleteArticle = async (req, res) => {
 
 export const getArticleDetail = async (req, res, next) => {
   const strArticleId = req.params.id
-  const article = await articleService.getArticleById(
+  const article = await articleService.getArticleDetailById(
     strArticleId,
     null,
     true)
   formatArticleWithIsSelf(article, req._id)
-
   if (!!article) {
     ResponseHandler.successObject(res, "", { article: article });
   } else {
