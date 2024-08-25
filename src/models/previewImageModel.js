@@ -44,4 +44,4 @@ imageSchema.index({ fullPath: 1 }, { unique: true })
 //一般抓取文章清單/給排程定期掃過久要被刪除的圖片(不過一天才一次) ,可以共用
 imageSchema.index({ isDelete: 1, resource: 1 })
 
-export default mongoose.model('previewImage', imageSchema);
+export default mongoose.model('PreviewImage', imageSchema);
