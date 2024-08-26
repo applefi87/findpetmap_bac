@@ -36,6 +36,7 @@ async function createArticleSession(articleObj, session) {
 // }
 async function getArticleList(bottomLeft, topRight, filter, skip, limit, userId) {
   const pipeline = generateGetArticleListPipeline(bottomLeft, topRight, filter, skip, limit);
+  console.log(pipeline[0]['$match'].lostDate);
   const articleList = await articleRepository.aggregate(pipeline);
   return articleList;
 }

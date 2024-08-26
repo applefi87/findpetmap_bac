@@ -15,7 +15,7 @@ router.delete('/:id', auth.jwt("_id"), getOwnerResourse("Article", "isDelete"), 
 // 在瀏覽文章清單時，直接點擊而浮的視窗會用到這(類似dcard)
 router.post('/:id', auth.onlyGetIdFromJWT, validateGetArticleDetail, getArticleDetail);
 // router.post('/', content('application/json'), validateSearchArticleList, searchArticleList);
-router.post('/', content('application/json'), searchArticleList);
+router.post('/', content('application/json'),validateSearchArticleList, searchArticleList);
 
 // router.post('/review/:id', content('application/json'), auth.jwt("_id securityData.role record.createBoardNum"), admin, validateReviewArticle, reviewArticle);
 export default router;

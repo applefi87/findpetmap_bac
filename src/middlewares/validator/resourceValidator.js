@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-// import { trusted } from 'mongoose'
+import { trusted } from 'mongoose'
 import anValidator from 'an-validator';
 
 import * as articleValidator from "../../utils/validator/articleValidator.js"
@@ -52,14 +52,14 @@ export const validateUpdateArticle = (req, res, next) => {
 };
 
 export const validateSearchArticleList = async (req, res, next) => {
-  const { petType, color, location, lostDate, lostCityCode, lostDistrict, hasReward, rewardAmount, hasMicrochip } = req.body;
+  const { petType, color, lostDate, lostCityCode, lostDistrict, hasReward, rewardAmount, hasMicrochip } = req.body.filter;
   // 查詢這幾項必填
-  const mustInputFields = { petType, color, location };
-  validAllFieldsPresent(mustInputFields);
+  // const mustInputFields = { petType, color, location };
+  // validAllFieldsPresent(mustInputFields);
 
   articleValidator.validatePetType(petType)
   articleValidator.validateColor(petType, color)
-  articleValidator.validateLocation(location)
+  // articleValidator.validateLocation(location)
   articleValidator.validateLostDate(lostDate);
   articleValidator.validateLostCityCode(lostCityCode);
   articleValidator.validateLostDistrict(lostCityCode, lostDistrict);
@@ -68,6 +68,11 @@ export const validateSearchArticleList = async (req, res, next) => {
   // 查詢這部分邏輯不同
   articleValidator.validateSearchRewardAmount(hasReward, rewardAmount);
   articleValidator.validateHasMicrochip(hasMicrochip);
+  req.filter = Object.fromEntries(
+    Object.entries({ petType, color, lostDate, lostCityCode, lostDistrict, hasReward, rewardAmount, hasMicrochip })
+      .filter(([key, value]) => value !== undefined)
+  );
+  if(req.filter.lostDate){req.filter.lostDate = trusted({ $gte: new Date(lostDate) })}  
   next()
 };
 

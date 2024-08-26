@@ -165,7 +165,8 @@ const formatArticleWithIsSelf = (articleDocument, userId) => {
 // };
 export const searchArticleList = async (req, res, next) => {
   try {
-    const { bottomLeft, topRight, skip = 0, limit = 1000 } = req.body;
+    const formatedFilter = req.filter || {}
+    const { bottomLeft, topRight,  skip = 0, limit = 1000 } = req.body;
     // Validate Coordinates
     if (!bottomLeft || !topRight) {
       throw new ValidateObjectError("validation.invalidType");
@@ -192,7 +193,7 @@ export const searchArticleList = async (req, res, next) => {
       throw new ValidateObjectError("searchAreaTooLarge");
     }
     // Query the database using the adjusted coordinates
-    const articles = await articleService.getArticleList(adjustedBottomLeft, adjustedTopRight, {}, skip, limit, req.user?._id.toString());
+    const articles = await articleService.getArticleList(adjustedBottomLeft, adjustedTopRight, formatedFilter, skip, limit, req.user?._id.toString());
     // If articles are found, send them back
     return ResponseHandler.successObject(res, "", { articles: articles, region: { bottomLeft: adjustedBottomLeft, topRight: adjustedTopRight } });
   } catch (error) {
