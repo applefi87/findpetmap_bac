@@ -1,0 +1,8 @@
+教學參考
+https://dev.to/devland/how-to-generate-and-use-an-ssl-certificate-in-nodejs-2996
+
+
+道專案建立cert資料夾,安裝openssl 再系統執行下面指令(要打字的全enter跳過)
+openssl genrsa -out key.pem 2048
+openssl req -new -key key.pem -out csr.pem
+openssl x509 -req -days 365 -in csr.pem -signkey key.pem -out cert.pem

@@ -859,7 +859,7 @@ describe('ArticleController getArticleDetail Tests', function () {
     });
   });
 });
-describe.only('ArticleController searchArticleList Tests', function () {
+describe('ArticleController searchArticleList Tests', function () {
   this.timeout(10000); // Increase timeout for the test suite
   let token;
   let userId;

@@ -1,6 +1,8 @@
 import './src/preload.js'
 import mongoose from 'mongoose';
 import http from 'http';
+import https from 'https';
+import fs from 'fs';
 import createApp from './src/createApp.js';
 import ResponseHandler from './src/middlewares/ResponseHandler.js';
 import PageNotFoundError from './src/infrastructure/errors/PageNotFoundError.js';
@@ -14,10 +16,20 @@ app.use(ResponseHandler.errorHandler);
 
 const port = process.env.PORT || 4000;
 
-const server = http.createServer(app);
-server.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+const options = {
+  key: fs.readFileSync('./cert/key.pem'),
+  cert: fs.readFileSync('./cert/cert.pem')
+};
+
+// Create an HTTPS server
+const server = https.createServer(options, app).listen(port, () => {
+  console.log('HTTPS Server running on port ' + port);
 });
+
+// const server = http.createServer(app);
+// server.listen(port, () => {
+//   console.log(`Server is running on port ${port}`);
+// });
 export default server;
 
 // Haversine formula to calculate distance

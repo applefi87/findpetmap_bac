@@ -14,8 +14,6 @@ import createI18nMiddleware from './middlewares/createI18nMiddleware.js';
 import './passport/passport.js'
 import DatabaseError from "./infrastructure/errors/DatabaseError.js"
 
-// console.log("enviroment :"+ process.env.NODE_ENV);
-
 const createApp = () => {
   const app = express();
 
@@ -27,9 +25,7 @@ const createApp = () => {
     legacyHeaders: false
   });
   app.use(limiter);
-  app.set('trust proxy', 1);
-
-  // Middleware
+  app.set('trust proxy', 1);  // Middleware
   app.use(cookieParser());
   const i18nMiddleware = createI18nMiddleware();
   app.use(i18nMiddleware);
@@ -38,7 +34,7 @@ const createApp = () => {
     origin: (origin, callback) => {
       const corsCheck = process.env.NODE_ENV === 'main'
         ? origin && (origin.startsWith('https://www.knowforum.com') || origin.startsWith('https://knowforum.com'))
-        : (origin === undefined || origin === 'https://tipspert.onrender.com' || origin === 'http://localhost:9000' || true);
+        : (origin === undefined || origin === 'https://tipspert.onrender.com' || origin === 'http://localhost:9100' || true);
       if (corsCheck) {
         callback(null, true);
       } else {
@@ -46,7 +42,10 @@ const createApp = () => {
         callback(new Error('Not Allowed'), false);
       }
     },
-    credentials: true
+    credentials: true,
+    methods: ['POST', 'PUT', 'GET', 'OPTIONS', 'HEAD', 'DELETE'],
+    exposedHeaders: ["set-cookie"],
+    // allowedHeaders: ['Content-Type', 'X-H', 'x-requested-with', 'Accept']
   };
   app.use(cors(corsOption));
 
