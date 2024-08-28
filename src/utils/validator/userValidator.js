@@ -1,4 +1,5 @@
 import anValidator from 'an-validator';
+import bcrypt from 'bcrypt'
 import User from '../../models/userModel.js'
 import validateAndFormatEmail from '../../infrastructure/utils/validateAndFormatEmail.js'
 import ValidationError from '../../infrastructure/errors/ValidationError.js';
@@ -50,7 +51,7 @@ export const validateUserChangePWD = async (req) => {
   if (!newPasswordValidateResult.success) throw new ValidationError(newPasswordValidateResult, "newPWD");
 
   await validAndHandleChangePWDTotalTryCount(req)
-  if (!bcrypt.compareSync(req.body.password, req.user.passqord)) {
+  if (!bcrypt.compareSync(req.body.password, req.user.password)) {
     req.user.safety.changePassword.totalTryCount++
     await validAndHandleChangePWDTotalTryCount(req)
     await req.user.save();

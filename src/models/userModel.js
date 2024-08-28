@@ -84,34 +84,6 @@ const schema = new mongoose.Schema({
     //   maxlength: [100, '必須 100 個字以下'],
     // }
   },
-  record: {
-    count: {
-      //之後再考慮文章是否分對自己的/對別人的差異
-      article: { type: Number, default: 0 },
-      comment: {
-        toSelf: { type: Number, default: 0 },
-        toOthers: { type: Number, default: 0 }
-      },
-      reply: {
-        toSelf: { type: Number, default: 0 },
-        toOthers: { type: Number, default: 0 }
-      }
-    },
-    givenRatings: {
-      article: { type: [Number], default: [0, 0, 0, 0, 0, 0] },
-      comment: { type: [Number], default: [0, 0, 0, 0, 0, 0] },
-      reply: { type: [Number], default: [0, 0, 0, 0, 0, 0] },
-    },
-    receiveRatings: {
-      article: { type: [Number], default: [0, 0, 0, 0, 0, 0] },
-      comment: { type: [Number], default: [0, 0, 0, 0, 0, 0] },
-      reply: { type: [Number], default: [0, 0, 0, 0, 0, 0] }
-    },
-    // createBoardNum: {
-    //   type: Number,
-    //   default: 0
-    // }
-  },
 }, { versionKey: false })
 
 export default mongoose.model('User', schema).on('index', err => {

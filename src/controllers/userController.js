@@ -118,22 +118,15 @@ export const logout = async (req, res, next) => {
 export const changePWD = async (req, res, next) => {
   // console.log('incontroller changePWD');
   await validateUserChangePWD(req);
-  const result = await upadatePWD(req);
-  // console.log('ok');
-  res.status(200).send({
-    success: true,
-    message: result.message
-  })
+  const user = await userService.findUserById(req.user._id, ['securityData.password', 'securityData.tokens', 'securityData.safety.times', 'securityData.safety.errTimes', 'securityData.safety.errDate'])
+  user.password = bcrypt.hashSync(req.body.newPWD, 10);
+  // 所有設備都該登出
+  user.tokens = [];
+  await user.save();
+  ResponseHandler.successObject(res, 'changePWDSuccessfully');
 }
 
-async function upadatePWD(req) {
-  const user = await userService.findUserById(req.user._id, ['securityData.password', 'securityData.tokens', 'securityData.safety.times', 'securityData.safety.errTimes', 'securityData.safety.errDate'])
-  user.securityData.password = bcrypt.hashSync(req.body.newPWD, 10);
-  // 所有設備都該登出
-  user.securityData.tokens = [];
-  await user.save();
-  return { message: { title: 'changePWDSuccessfully' } };
-};
+
 //***************************************************************** */
 export const resetPWD = async (req, res) => {
   const newRandomPWD = randomStringGenerator.generate(10, "medium")
@@ -151,6 +144,6 @@ function getResetPWDMainTitleInI18n(res) {
   return res.__(`mail.resetPWDTitle`)
 }
 function getResetPWDMainContentInI18n(res, newPWD) {
-  return res.__(`mail.resetPWContent`, { newPWD })
+  return res.__(`mail.resetPWDContent`, { newPWD })
 }
 //***************************************************************** */

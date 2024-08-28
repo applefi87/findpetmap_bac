@@ -9,10 +9,10 @@ const createEmail = async (emailObj) => {
   return await emailRepository.createEmail(emailObj)
 }
 
-const updateEmailHasUser = async (email, userId, session) => {
+const updateEmailHasUser = async (emailDocument, userId, session) => {
   try {
-    email.user = userId;
-    await email.save({ session });
+    emailDocument.user = userId;
+    await emailDocument.save({ session });
   } catch (error) {
     throw new DatabaseError(error, emailObj)
   }

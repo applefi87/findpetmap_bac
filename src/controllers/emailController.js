@@ -119,33 +119,34 @@ export const verifyVerificationCode = (type, isMiddleWare) => {
       default:
         throw new UnknownError("handleSendExistEmail have unknown type as:'" + type + "'.")
     }
-    let email
+    let emailDocument
     const verificationCode = req.body.verificationCode?.toString()
     validateVerificationCode(verificationCode, verificationCodeLength, verificationCodeMode)
     const formatedEmail = validateAndFormatEmail(req.body.email)
-    email = await emailService.getEmailByName(formatedEmail, "user verificationCode verifyFailTimes codeValidAt")
+    emailDocument = await emailService.getEmailByName(formatedEmail, "user verificationCode verifyFailTimes codeValidAt")
     // 防亂驗證信箱
-    if (!email) {
+    if (!emailDocument) {
       throw new ValidationObjectError('sendEmailFirst')
     }
     // 取的email document後的基本檢查
     switch (type) {
       case "register":
-        if (email.user) {
+        if (emailDocument.user) {
           throw new ValidationObjectError({ key: 'occupiedEmail', params: { email: formatedEmail } })
         }
         break;
       case "forgetPWD":
-        if (!email.user) {
+        if (!emailDocument.user) {
           // 有點非法，類似隨便對一個email 直接當作要改密碼，但根本沒用戶。 跟沒此email用一樣的
           throw new ValidationObjectError('sendEmailFirst')
         }
         break;
     }
     //
-    await isCheckEmailVerificationCodeValid(email, verificationCode)
+    await isCheckEmailVerificationCodeValid(emailDocument, verificationCode)
     if (isMiddleWare) {
-      req.email = email
+      req.email = emailDocument
+      req.formatedEmail = formatedEmail
       next()
     } else {
       ResponseHandler.successObject(res, { key: 'verificationSuccess', params: { email: formatedEmail } }, { text: formatedEmail });
@@ -160,17 +161,17 @@ function validateVerificationCode(verificationCode, length, mode) {
   }
 }
 
-async function isCheckEmailVerificationCodeValid(email, verificationCode) {
-  if (email.codeValidAt.getTime() < Date.now()) {
+async function isCheckEmailVerificationCodeValid(emailDocument, verificationCode) {
+  if (emailDocument.codeValidAt.getTime() < Date.now()) {
     throw new ValidationObjectError('verificationCodeExpired')
   }
-  if (email.verifyFailTimes >= 3) {
+  if (emailDocument.verifyFailTimes >= 3) {
     throw new ValidationObjectError('tooManyVerificationErrors')
   }
-  if (email.verificationCode !== hash.sha256().update(verificationCode).digest('hex')) {
-    email.verifyFailTimes++
-    await email.save()
-    throw new ValidationObjectError({ key: 'verificationCodeError', params: { errLimit: 4 - email.verifyFailTimes } })
+  if (emailDocument.verificationCode !== hash.sha256().update(verificationCode).digest('hex')) {
+    emailDocument.verifyFailTimes++
+    await emailDocument.save()
+    throw new ValidationObjectError({ key: 'verificationCodeError', params: { errLimit: 4 - emailDocument.verifyFailTimes } })
   }
   else return true
 }
@@ -202,7 +203,7 @@ export const sendForgetPWDCode = async (req, res, next) => {
   const verificationCodeMode = emailConfigs[`${type}VerificationCode`].codeRandomMode
   await handleSendExistEmail("forgetPWD", email, formatedEmail, batchId, res, verificationCodeLength, verificationCodeMode)
   // console.log(`識別碼:${identifier} 【${createCode}】 `);
-  ResponseHandler.successObject(res, { key: 'verificationEmailSent', params: { email: formatedEmail, batchId } }, { data: { batchId } });
+  ResponseHandler.successObject(res, { key: 'verificationEmailSent', params: { email: formatedEmail, batchId } }, { batchId });
 }
 
 // function getForgetPWDCodeMailTitleByLang(lang) {
