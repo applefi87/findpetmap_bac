@@ -529,12 +529,10 @@ describe('Article Validator', () => {
     });
 
     it('should throw an error for content above maximum length', () => {
-      console.log(articleContentLengthMax + 1);
       const longContent = 'a'.repeat(articleContentLengthMax + 2);
 
       expect(() => articleValidator.validateContent(longContent)).to.throw(ValidationError)
         .and.to.satisfy((error) => {
-          console.log(error);
           return error.validationResult.message.title === 'articleContentBetween' &&
             error.data.min === articleContentLengthMin &&
             error.data.max === articleContentLengthMax;

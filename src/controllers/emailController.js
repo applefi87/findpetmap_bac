@@ -143,7 +143,7 @@ export const verifyVerificationCode = (type, isMiddleWare) => {
         break;
     }
     //
-    await isCheckEmailVerificationCodeValid(emailDocument, verificationCode)
+    await checkEmailVerificationCodeValid(emailDocument, verificationCode)
     if (isMiddleWare) {
       req.email = emailDocument
       req.formatedEmail = formatedEmail
@@ -161,7 +161,7 @@ function validateVerificationCode(verificationCode, length, mode) {
   }
 }
 
-async function isCheckEmailVerificationCodeValid(emailDocument, verificationCode) {
+async function checkEmailVerificationCodeValid(emailDocument, verificationCode) {
   if (emailDocument.codeValidAt.getTime() < Date.now()) {
     throw new ValidationObjectError('verificationCodeExpired')
   }
@@ -173,7 +173,6 @@ async function isCheckEmailVerificationCodeValid(emailDocument, verificationCode
     await emailDocument.save()
     throw new ValidationObjectError({ key: 'verificationCodeError', params: { errLimit: 4 - emailDocument.verifyFailTimes } })
   }
-  else return true
 }
 
 //***** */
@@ -235,7 +234,7 @@ export const sendForgetPWDCode = async (req, res, next) => {
 //     if (!email || !email.user || !email.forgetPWD) {
 //       throw new ValidationError('sendEmailFirst')
 //     }
-//     await isCheckEmailVerificationCodeValid(email, verificationCode)
+//     await checkEmailVerificationCodeValid(email, verificationCode)
 //     // 供等等抓users
 //     req.user = email.user
 //     req.formatedEmail = formatedEmail

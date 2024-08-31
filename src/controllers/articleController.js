@@ -94,7 +94,6 @@ export async function updateArticle(req, res) {
             const previewFullPath = originalImage.fullPath.replace("original/", "preview/");
             const previewImage = await previewImageService.findPreviewImageIgnoreDeleteByfullPath(previewFullPath)
             // 4.
-            console.log("previewImage:", previewImage);
             if (previewImage) {
               await previewImageService.deletePreviewImageByArticleIdSession(strArticleId, session)
               previewImage.isDelete = false

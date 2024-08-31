@@ -4,6 +4,7 @@ import request from 'supertest';
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import hash from 'hash.js'
+import i18n from 'i18n';
 import app from '../testApp.js';
 import emailConfigs from '../../src/infrastructure/configs/emailConfigs.js'
 import Email from '../../src/models/emailModel.js'; // Your Email model
@@ -21,13 +22,32 @@ describe('sendForgetPWDCode', function () {
   const verificationCodeLength = emailConfigs[`${type}VerificationCode`].codeRandomLength
   const verificationCodeMode = emailConfigs[`${type}VerificationCode`].codeRandomMode
   let verificationCode = randomStringGenerator.generate(verificationCodeLength, verificationCodeMode)
+  let wrongVerificationCode = randomStringGenerator.generate(verificationCodeLength, verificationCodeMode)
   let sendMailStub;
   let refreshTokenStub;
+  let i18nStub;
   let randomStringGeneratorStub;
   let userId;
   let token
 
+  before(async () => {
+
+    randomStringGeneratorStub = sinon.stub(randomStringGenerator, 'generate').returns(newRandomPWD);
+    i18nStub = sinon.stub(i18n, '__').callsFake((key) => key);
+  });
+
+  after(async () => {
+    // Restore the stubs
+    randomStringGeneratorStub.restore();
+    i18nStub.restore();
+  });
+
+
+
   beforeEach(async () => {
+    // 會被檢查呼叫次數的，每次要重建 
+    sendMailStub = sinon.stub(sendEmailService.transporter, 'sendMail').resolves();
+    refreshTokenStub = sinon.stub(sendEmailService, 'refreshTokenIfNeeded').resolves('mocked-new-token');
     // Clear the database
     const collections = await mongoose.connection.db?.collections();
     if (collections) {
@@ -59,26 +79,22 @@ describe('sendForgetPWDCode', function () {
     });
     await email.save();
 
-    // Stub the email service methods
-    sendMailStub = sinon.stub(sendEmailService.transporter, 'sendMail').resolves();
-    refreshTokenStub = sinon.stub(sendEmailService, 'refreshTokenIfNeeded').resolves('mocked-new-token');
-    randomStringGeneratorStub = sinon.stub(randomStringGenerator,'generate').returns(newRandomPWD);
+
   });
 
   afterEach(() => {
-    // Restore the stubs
+    // 會被檢查呼叫次數的，每次要重建 
     sendMailStub.restore();
     refreshTokenStub.restore();
-    randomStringGeneratorStub.restore();
   });
 
   it('should still can resetPWD successfully only in three try', async () => {
     let res = await request(app)
       .post('/user/resetPWD')
-      .send({ verificationCode: "erro8cod", email: exampleEmail });
+      .send({ verificationCode: wrongVerificationCode, email: exampleEmail });
     res = await request(app)
       .post('/user/resetPWD')
-      .send({ verificationCode: "erro8cod", email: exampleEmail });
+      .send({ verificationCode: wrongVerificationCode, email: exampleEmail });
     res = await request(app)
       .post('/user/resetPWD')
       .send({ verificationCode: verificationCode, email: exampleEmail });
@@ -90,23 +106,25 @@ describe('sendForgetPWDCode', function () {
   it('should return an error when the code fail 3 times', async () => {
     let res = await request(app)
       .post('/user/resetPWD')
-      .send({ verificationCode: "erro8cod", email: exampleEmail });
+      .send({ verificationCode: wrongVerificationCode, email: exampleEmail });
     res = await request(app)
       .post('/user/resetPWD')
-      .send({ verificationCode: "erro8cod", email: exampleEmail });
+      .send({ verificationCode: wrongVerificationCode, email: exampleEmail });
     res = await request(app)
       .post('/user/resetPWD')
-      .send({ verificationCode: "erro8cod", email: exampleEmail });
+      .send({ verificationCode: wrongVerificationCode, email: exampleEmail });
     res = await request(app)
       .post('/user/resetPWD')
       .send({ verificationCode: verificationCode, email: exampleEmail });
     // let res = await request(app)
     //   .post('/user/resetPWD')
-    //   .send({ verificationCode: "erro8cod", email: exampleEmail });
+    //   .send({ verificationCode: wrongVerificationCode, email: exampleEmail });
 
     expect(res.status).to.equal(422);
     expect(res.body.success).to.be.false;
-    expect(res.body.message).to.equal("Too many verification errors. Resend email to verify account.");
+    // i18n
+    expect(res.body.message).to.equal("tooManyVerificationErrors");
+    expect(i18nStub.calledWith('tooManyVerificationErrors')).to.be.true;
   });
 
   it('should return an error when the email is not registered', async () => {
@@ -116,7 +134,9 @@ describe('sendForgetPWDCode', function () {
 
     expect(res.status).to.equal(422);
     expect(res.body.success).to.be.false;
-    expect(res.body.message).to.equal('sendEmailFirst');
+    // i18n
+    expect(res.body.message).to.equal("sendEmailFirst");
+    expect(i18nStub.calledWith('sendEmailFirst')).to.be.true;
   });
 
 
@@ -129,7 +149,7 @@ describe('sendForgetPWDCode', function () {
     // Reset password with the verification code
     res = await request(app)
       .post('/user/resetPWD') // Adjust to your reset password route
-      .send({ email: 'test@example.com', verificationCode});
+      .send({ email: 'test@example.com', verificationCode });
 
     expect(res.status).to.equal(200);
 

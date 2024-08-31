@@ -9,34 +9,36 @@ import User from '../../src/models/userModel.js';
 import Image from '../../src/models/imageModel.js';
 import PreviewImage from '../../src/models/previewImageModel.js';
 import Article from '../../src/models/articleModel.js';
-
+import i18n from 'i18n'
 import s3Service from '../../src/services/s3Service.js';
 
 const base64Image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wcAAgEB/w7TXMIAAAAASUVORK5CYII=';
 const fakeImageBuffer = Buffer.from(base64Image, 'base64');
-const pwd = "testPASSWORD"
 const image1Id = "60ddc71d3b7f4e3a2c8d9a71"
 const image2Id = "60ddc71d3b7f4e3a2c8d9a72"
 const image3Id = "60ddc71d3b7f4e3a2c8d9a73"
 const articleValidData = {
   petType: '貓',
-  color: '黑白',
-  hasReward: true,
-  rewardAmount: 5000,
-  hasMicrochip: true,
-  lostDate: '2024-08-01',
+  color: '橘',
+  location: { type: 'Point', coordinates: [121.5111, 25.05111] },
+  lostDate: new Date('2024-02-20'),
   lostCityCode: 'A',
-  lostDistrict: '中山區',
-  location: {
-    type: 'Point',
-    coordinates: [121.532328, 25.040792]
-  },
-  content: '我們的貓咪失蹤了，牠的名字是小黑，牠喜歡在公園玩耍。如果有看到牠，請聯繫我們，有重賞！',
-};
+  lostDistrict: '內湖區',
+  hasReward: true,
+  rewardAmount: 50000,
+  breed: '英國短毛貓',
+  size: 'M',
+  age: 1.3,
+  gender: 'F',
+  hasMicrochip: true,
+  title: 'Lost Orange Cat',
+  content: 'Lost in Neihu District.',
+}
 
 describe('Article Image Upload Tests', function () {
   this.timeout(10000); // Increase timeout for the test suite
   let uploadImageStub;
+  let i18nStub;
   let token;
   let userId;
   let articleId;
@@ -47,10 +49,12 @@ describe('Article Image Upload Tests', function () {
     uploadImageStub = sinon.stub(s3Service, 'uploadImage').callsFake((fullPath, fileContent, contentType) => {
       return Promise.resolve(fullPath);
     });
+    i18nStub = sinon.stub(i18n, '__').callsFake((key) => key);
   });
 
   after(async () => {
     uploadImageStub.restore();
+    i18nStub.restore();
   });
 
   beforeEach(async () => {
@@ -101,6 +105,7 @@ describe('Article Image Upload Tests', function () {
       .set('Authorization', `Bearer ${token}`)
       .field('isPreview', "true")
       .attach('image', fakeImageBuffer, 'test-image1.jpg');
+
     const newImageOriginalFullPath = res.body.data.fullPath
     const newImagePreviewFullPath = newImageOriginalFullPath.replace("original/", "preview/");
     expect(res.status).to.equal(201);
@@ -131,7 +136,6 @@ describe('Article Image Upload Tests', function () {
       .set('Authorization', `Bearer ${token}`)
       .field('isPreview', "true")
       .attach('image', fakeImageBuffer, 'test-image1.jpg');
-    const newImageOriginalFullPath = res.body.data.fullPath
     expect(res.status).to.equal(201);
 
     const images = await Image.find({ resource: articleId, isDelete: false }).lean();
@@ -162,7 +166,9 @@ describe('Article Image Upload Tests', function () {
       .attach('image', fakeImageBuffer, 'test-image1.jpg');
     expect(res.status).to.equal(422);
     expect(res.body).to.haveOwnProperty('message');
-    expect(res.body.message).to.be.equal("tooManyImages");
+    // i18n
+    expect(res.body.message).to.equal("tooManyImages");
+    expect(i18nStub.calledWith('tooManyImages')).to.be.true;
   });
 
 
