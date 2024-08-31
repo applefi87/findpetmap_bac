@@ -53,7 +53,7 @@ const createApp = () => {
   // app.use(mongoSanitize({
   //   replaceWith: '_'
   // }));
-  app.use(express.json({ limit: '2mb' }));
+  app.use(express.json({ limit: '5mb' }));
   app.get('/', async (req, res, next) => {
     return ResponseHandler.success(res);
   });

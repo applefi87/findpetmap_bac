@@ -1,5 +1,6 @@
 const articleImage = {
-  maxAmount: 3
+  maxAmount: 4,
+  maxFileSize: 5
 };
 
 export default { articleImage };

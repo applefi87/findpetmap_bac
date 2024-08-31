@@ -11,12 +11,13 @@ import PreviewImage from '../../src/models/previewImageModel.js';
 import Article from '../../src/models/articleModel.js';
 import i18n from 'i18n'
 import s3Service from '../../src/services/s3Service.js';
+import imageConfigs from '../../src/infrastructure/configs/imageConfigs.js';
+const articleImageMaxAmount = imageConfigs.articleImage.maxAmount
 
 const base64Image = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wcAAgEB/w7TXMIAAAAASUVORK5CYII=';
 const fakeImageBuffer = Buffer.from(base64Image, 'base64');
 const image1Id = "60ddc71d3b7f4e3a2c8d9a71"
-const image2Id = "60ddc71d3b7f4e3a2c8d9a72"
-const image3Id = "60ddc71d3b7f4e3a2c8d9a73"
+
 const articleValidData = {
   petType: '貓',
   color: '橘',
@@ -93,25 +94,41 @@ describe('Article Image Upload Tests', function () {
     }
   });
 
-  it('should upload a new image, and no preview before so add it as a preview', async () => {
-    // Insert initial images and preview images
-    const imageList = [
-      { _id: image1Id, resource: articleId, fullPath: `original/${image1Id}.jpg`, isPreview: false },
-      { _id: image2Id, resource: articleId, fullPath: `original/${image2Id}.jpg`, isPreview: false },
-    ];
+  async function createImageList(totalImages, needFirstPreview = false) {
+    const imageList = [];
+    for (let i = 1; i <= totalImages; i++) {
+      const imageId = `60ddc71d3b7f4e3a2c8d9a7${i}`;
+      imageList.push({
+        _id: imageId,
+        resource: articleId,
+        fullPath: `original/${imageId}.jpg`,
+        isPreview: i === 1 && needFirstPreview, // Set the first image as the preview by default
+      });
+    }
     await Image.insertMany(imageList);
+    if (needFirstPreview && imageList.length > 1) {
+      const previewImageList = [
+        { image: image1Id, resource: articleId, fullPath: `preview/${image1Id}.jpg`, isDelete: false },
+      ];
+      await PreviewImage.insertMany(previewImageList);
+    }
+  }
+  it('should upload a new image for not reached max amount ' + articleImageMaxAmount + ', and no preview before so add it as a preview', async () => {
+    // Insert initial images and preview images
+    await createImageList(articleImageMaxAmount - 1);
+
     const res = await request(app)
       .post(`/image/upload/article/${articleId}`)
       .set('Authorization', `Bearer ${token}`)
       .field('isPreview', "true")
       .attach('image', fakeImageBuffer, 'test-image1.jpg');
-
+      
     const newImageOriginalFullPath = res.body.data.fullPath
     const newImagePreviewFullPath = newImageOriginalFullPath.replace("original/", "preview/");
     expect(res.status).to.equal(201);
 
     const images = await Image.find({ resource: articleId, isDelete: false }).lean();
-    expect(images.length).to.be.equal(3);
+    expect(images.length).to.be.equal(articleImageMaxAmount);
 
     const previewImages = await PreviewImage.find({ resource: articleId, isDelete: false }).lean();
     expect(previewImages.length).to.be.equal(1);
@@ -120,16 +137,7 @@ describe('Article Image Upload Tests', function () {
 
   it('should upload a new image, but already have preview, so keep original', async () => {
     // Insert initial images and preview images
-    const imageList = [
-      { _id: image1Id, resource: articleId, fullPath: `original/${image1Id}.jpg`, isPreview: true },
-      { _id: image2Id, resource: articleId, fullPath: `original/${image2Id}.jpg`, isPreview: false },
-    ];
-    await Image.insertMany(imageList);
-
-    const previewImageList = [
-      { image: image1Id, resource: articleId, fullPath: `preview/${image1Id}.jpg`, isDelete: false },
-    ];
-    await PreviewImage.insertMany(previewImageList);
+    await createImageList(articleImageMaxAmount - 1, true);
 
     const res = await request(app)
       .post(`/image/upload/article/${articleId}`)
@@ -139,7 +147,7 @@ describe('Article Image Upload Tests', function () {
     expect(res.status).to.equal(201);
 
     const images = await Image.find({ resource: articleId, isDelete: false }).lean();
-    expect(images.length).to.be.equal(3);
+    expect(images.length).to.be.equal(articleImageMaxAmount);
 
     const previewImages = await PreviewImage.find({ resource: articleId, isDelete: false }).lean();
     expect(previewImages.length).to.be.equal(1);
@@ -147,18 +155,9 @@ describe('Article Image Upload Tests', function () {
     expect(previewImages[0].image.toString()).to.be.equal(image1Id);
   });
 
-  it('max 3 image, will throw error', async () => {
+  it('max ' + articleImageMaxAmount + ' image, will throw error', async () => {
     // Insert initial images and preview images
-    const imageList = [
-      { _id: image1Id, resource: articleId, fullPath: `original/${image1Id}.jpg`, isPreview: true },
-      { _id: image2Id, resource: articleId, fullPath: `original/${image2Id}.jpg`, isPreview: false },
-      { _id: image3Id, resource: articleId, fullPath: `original/${image3Id}.jpg`, isPreview: false },
-    ];
-    await Image.insertMany(imageList);
-    const previewImageList = [
-      { image: image1Id, resource: articleId, fullPath: `preview/${image1Id}.jpg`, isDelete: false },
-    ];
-    await PreviewImage.insertMany(previewImageList);
+    await createImageList(articleImageMaxAmount, true);
     const res = await request(app)
       .post(`/image/upload/article/${articleId}`)
       .set('Authorization', `Bearer ${token}`)
@@ -170,7 +169,6 @@ describe('Article Image Upload Tests', function () {
     expect(res.body.message).to.equal("tooManyImages");
     expect(i18nStub.calledWith('tooManyImages')).to.be.true;
   });
-
 
   it('If first image of article, will force set as preview image', async () => {
     const res = await request(app)
@@ -192,3 +190,4 @@ describe('Article Image Upload Tests', function () {
     expect(previewImages[0].fullPath).to.be.equal(newImagePreviewFullPath);
   });
 });
+
