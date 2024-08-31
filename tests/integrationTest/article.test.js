@@ -25,6 +25,11 @@ const articleValidData = {
   hasReward: true,
   rewardAmount: 5000,
   hasMicrochip: true,
+  title: '麻吉',
+  gender: 'F',
+  age: 1.2,
+  breed: '混種貓',
+  size: 'M',
   lostDate: '2024-08-01',
   lostCityCode: 'A',
   lostDistrict: '中山區',
@@ -35,6 +40,201 @@ const articleValidData = {
   content: '我們的貓咪失蹤了，牠的名字是小黑，牠喜歡在公園玩耍。如果有看到牠，請聯繫我們，有重賞！',
 };
 
+const createArticleTestCases = [
+  {
+    name: 'valid data',
+    data: {
+      ...articleValidData
+    },
+    expectedStatus: 200,
+  },
+  // Missing required fields
+  {
+    name: 'missing required field "lostDate"',
+    data: {
+      ...articleValidData,
+      lostDate: undefined,
+    },
+    expectedStatus: 422,
+  },
+  {
+    name: 'missing required field "petType"',
+    data: {
+      ...articleValidData,
+      petType: undefined,
+    },
+    expectedStatus: 422,
+  },
+
+  // Invalid data types
+  {
+    name: 'invalid data type for "rewardAmount"',
+    data: {
+      ...articleValidData,
+      hasReward: true,
+      rewardAmount: 'five thousand',
+    },
+    expectedStatus: 422,
+  },
+  {
+    name: 'invalid data type for "location.coordinates"',
+    data: {
+      ...articleValidData,
+      location: {
+        type: 'Point',
+        coordinates: ['121.532328', '25.040792'] // Strings instead of numbers
+      },
+    },
+    expectedStatus: 422,
+  },
+
+  // Edge Cases
+  {
+    name: 'rewardAmount should be greater than 0',
+    data: {
+      ...articleValidData,
+      hasReward: true,
+      rewardAmount: 0, // Testing the minimum valid value
+    },
+    expectedStatus: 422,
+  },
+  {
+    name: 'minimum valid rewardAmount with valid updateImageList',
+    data: {
+      ...articleValidData,
+      rewardAmount: 1, // Testing the minimum valid value
+    },
+    expectedStatus: 200,
+  },
+  {
+    name: 'maximum string length for "content"',
+    data: {
+      ...articleValidData,
+      content: 'A'.repeat(articleConfigs.content.maxLength), // Maximum allowed content length
+
+    },
+    expectedStatus: 200,
+  },
+
+  // Invalid enum values
+  {
+    name: 'invalid enum value for "petType"',
+    data: {
+      ...articleValidData,
+      petType: 'dragon', // Invalid pet type
+
+    },
+    expectedStatus: 422,
+  },
+  {
+    name: 'invalid enum value for "lostCityCode"',
+    data: {
+      ...articleValidData,
+      lostCityCode: 'Z', // Invalid city code
+
+    },
+    expectedStatus: 422,
+  },
+
+  // Logical inconsistencies
+  {
+    name: 'rewardAmount without hasReward being true',
+    data: {
+      ...articleValidData,
+      hasReward: false,
+      rewardAmount: 5000, // Should not allow a reward amount if hasReward is false
+
+    },
+    expectedStatus: 422,
+  },
+  {
+    name: ' title should not be empty',
+    data: {
+      ...articleValidData,
+      title: '',
+    },
+    expectedStatus: 422
+  },
+  {
+    name: 'content should not be too short',
+    data: {
+      ...articleValidData,
+      content: '1',
+    },
+    expectedStatus: 422
+  },
+  {
+    name: 'breed should in breed list',
+    data: {
+      ...articleValidData,
+      breed: '不存在的品種',
+    },
+    expectedStatus: 422
+  },
+  {
+    name: 'breed should not be empty',
+    data: {
+      ...articleValidData,
+      breed: '',
+    },
+    expectedStatus: 422
+  },
+  {
+    name: 'size should in size list',
+    data: {
+      ...articleValidData,
+      size: 'xssss',
+    },
+    expectedStatus: 422
+  },
+  {
+    name: 'size should not be empty',
+    data: {
+      ...articleValidData,
+      size: '',
+    },
+    expectedStatus: 422
+  },
+  {
+    name: 'gender should in gender list',
+    data: {
+      ...articleValidData,
+      gender: 'MF',
+    },
+    expectedStatus: 422
+  },
+  {
+    name: 'gender should not be empty',
+    data: {
+      ...articleValidData,
+      gender: '',
+    },
+    expectedStatus: 422
+  },
+  {
+    name: 'age should be valid number',
+    data: {
+      ...articleValidData,
+      age: 'a',
+    },
+    expectedStatus: 422
+  },
+  {
+    name: 'age should not be empty',
+    data: {
+      ...articleValidData,
+      age: '',
+    },
+    expectedStatus: 422
+  },
+];
+const getCreateArticleTestCases = () => JSON.parse(JSON.stringify(createArticleTestCases));
+const getUpdateArticleTestCases = () => JSON.parse(JSON.stringify(createArticleTestCases)).map(testCase => {
+  testCase.data.updateImageList = [
+    { id: image1Id, isPreview: true }
+  ]
+  return testCase;
+});
 describe('ArticleController Create Tests', function () {
   this.timeout(10000); // Increase timeout for the test suite
   let token
@@ -64,147 +264,16 @@ describe('ArticleController Create Tests', function () {
       }
     }
   });
-
-  const testCases = [
-    {
-      name: 'valid data',
-      data: {
-        ...articleValidData,
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000
-      },
-      expectedStatus: 201,
-      expectedIsDelete: false,
-    },
-    // Missing required fields
-    {
-      name: 'missing required field "lostDate"',
-      data: {
-        ...articleValidData,
-        lostDate: undefined,
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000
-      },
-      expectedStatus: 422,
-    },
-    {
-      name: 'missing required field "petType"',
-      data: {
-        ...articleValidData,
-        petType: undefined,
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000
-      },
-      expectedStatus: 422,
-    },
-
-    // Invalid data types
-    {
-      name: 'invalid data type for "rewardAmount"',
-      data: {
-        ...articleValidData,
-        hasReward: true,
-        rewardAmount: 'five thousand',
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000
-      },
-      expectedStatus: 422,
-    },
-    {
-      name: 'invalid data type for "location.coordinates"',
-      data: {
-        ...articleValidData,
-        location: {
-          type: 'Point',
-          coordinates: ['121.532328', '25.040792'] // Strings instead of numbers
-        },
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000
-      },
-      expectedStatus: 422,
-    },
-
-    // Edge Cases
-    {
-      name: 'rewardAmount should be greater than 0',
-      data: {
-        ...articleValidData,
-        hasReward: true,
-        rewardAmount: 0, // Testing the minimum valid value
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000
-      },
-      expectedStatus: 422,
-      expectedIsDelete: false,
-    },
-    {
-      name: 'maximum string length for "content"',
-      data: {
-        ...articleValidData,
-        content: 'A'.repeat(articleConfigs.content.maxLength), // Maximum allowed content length
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000
-      },
-      expectedStatus: 201,
-      expectedIsDelete: false,
-    },
-
-    // Invalid enum values
-    {
-      name: 'invalid enum value for "petType"',
-      data: {
-        ...articleValidData,
-        petType: 'dragon', // Invalid pet type
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000
-      },
-      expectedStatus: 422,
-    },
-    {
-      name: 'invalid enum value for "lostCityCode"',
-      data: {
-        ...articleValidData,
-        lostCityCode: 'Z', // Invalid city code
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000
-      },
-      expectedStatus: 422,
-    },
-
-    // Logical inconsistencies
-    {
-      name: 'rewardAmount without hasReward being true',
-      data: {
-        ...articleValidData,
-        hasReward: false,
-        rewardAmount: 5000, // Should not allow a reward amount if hasReward is false
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000
-      },
-      expectedStatus: 422,
-    }
-  ];
-
-  testCases.forEach(({ name, data, expectedStatus, expectedIsDelete }) => {
+  const testCases = getCreateArticleTestCases()
+  testCases.forEach(({ name, data, expectedStatus }) => {
     it(`createArticle - ${name}`, async () => {
       const res = await request(app)
         .post('/article/create')
         .set('Authorization', `Bearer ${token}`)
         .send(data);
-
       expect(res.status).to.equal(expectedStatus);
 
-      if (expectedStatus === 201) {
+      if (expectedStatus === 200) {
         const newArticle = await Article.findOne({}).lean();
         // 輸入是字串，但存資料庫是date，同時date不能比較，所以用文字比較
         newArticle.lostDate = new Date(newArticle.lostDate).toLocaleDateString('en-CA');
@@ -212,7 +281,7 @@ describe('ArticleController Create Tests', function () {
         expect(newArticle).to.include(removeNotEditableProperties(articleValidDataWithoutLocation));
         expect(newArticle).to.have.property('location').that.deep.equals(data.location);
         // 以下區域應該是系統自動產生的,不該被用戶附職
-        expect(newArticle.isDelete).to.equal(expectedIsDelete);
+        expect(newArticle.isDelete).to.equal(false);
         expect(newArticle.createdAt).to.not.equal(data.createdAt);
         expect(newArticle.updatedAt).to.not.equal(data.updatedAt);
       }
@@ -274,174 +343,15 @@ describe('ArticleController Update Tests', function () {
     }
   });
 
-
-  const testCases = [
-    {
-      name: 'valid data with valid updateImageList',
-      data: {
-        ...articleValidData,
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000,
-        updateImageList: [
-          { id: image1Id, isPreview: true },
-          { id: image2Id, isPreview: false }
-        ]
-      },
-      expectedStatus: 200,
-      expectedIsDelete: false,
-    },
-    // Missing required fields
-    {
-      name: 'missing required field "lostDate" with valid updateImageList',
-      data: {
-        ...articleValidData,
-        lostDate: undefined,
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000,
-        updateImageList: [
-          { id: image1Id, isPreview: true },
-        ]
-      },
-      expectedStatus: 422,
-    },
-    {
-      name: 'missing required field "petType" with valid updateImageList',
-      data: {
-        ...articleValidData,
-        petType: undefined,
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000,
-        updateImageList: [
-          { id: image1Id, isPreview: true },
-        ]
-      },
-      expectedStatus: 422,
-    },
-
-    // Invalid data types
-    {
-      name: 'invalid data type for "rewardAmount" with valid updateImageList',
-      data: {
-        ...articleValidData,
-        rewardAmount: 'five thousand',
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000,
-        updateImageList: [
-          { id: image1Id, isPreview: true },
-        ]
-      },
-      expectedStatus: 422,
-    },
-    {
-      name: 'invalid data type for "location.coordinates" with valid updateImageList',
-      data: {
-        ...articleValidData,
-        location: {
-          type: 'Point',
-          coordinates: ['121.532328', '25.040792'] // Strings instead of numbers
-        },
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000,
-        updateImageList: [
-          { id: image1Id, isPreview: true },
-        ]
-      },
-      expectedStatus: 422,
-    },
-
-    // Edge Cases
-    {
-      name: 'minimum valid rewardAmount with valid updateImageList',
-      data: {
-        ...articleValidData,
-        rewardAmount: 1, // Testing the minimum valid value
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000,
-        updateImageList: [
-          { id: image1Id, isPreview: true },
-        ]
-      },
-      expectedStatus: 200,
-      expectedIsDelete: false,
-    },
-    {
-      name: 'maximum string length for "content" with valid updateImageList',
-      data: {
-        ...articleValidData,
-        content: 'A'.repeat(articleConfigs.content.maxLength), // Maximum allowed content length
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000,
-        updateImageList: [
-          { id: image1Id, isPreview: true },
-        ]
-      },
-      expectedStatus: 200,
-      expectedIsDelete: false,
-    },
-
-    // Invalid enum values
-    {
-      name: 'invalid enum value for "petType" with valid updateImageList',
-      data: {
-        ...articleValidData,
-        petType: 'dragon', // Invalid pet type
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000,
-        updateImageList: [
-          { id: image1Id, isPreview: true },
-        ]
-      },
-      expectedStatus: 422,
-    },
-    {
-      name: 'invalid enum value for "lostCityCode" with valid updateImageList',
-      data: {
-        ...articleValidData,
-        lostCityCode: 'Z', // Invalid city code
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000,
-        updateImageList: [
-          { id: image1Id, isPreview: true },
-        ]
-      },
-      expectedStatus: 422,
-    },
-
-    // Logical inconsistencies
-    {
-      name: 'rewardAmount without hasReward being true with valid updateImageList',
-      data: {
-        ...articleValidData,
-        hasReward: false,
-        rewardAmount: 5000, // Should not allow a reward amount if hasReward is false
-        isDelete: true,
-        createdAt: new Date() - 24 * 60 * 60 * 1000,
-        updatedAt: new Date() - 24 * 60 * 60 * 1000,
-        updateImageList: [
-          { id: image1Id, isPreview: true },
-        ]
-      },
-      expectedStatus: 422,
-    },
-  ];
-
+  const testCases = getUpdateArticleTestCases()
   testCases.forEach(({ name, data, expectedStatus, expectedIsDelete }) => {
     it(`updateArticle - ${name}`, async () => {
       const res = await request(app)
         .put(`/article/update/${articleId}`)
         .set('Authorization', `Bearer ${token}`)
         .send(data);
-      expect(res.status).to.equal(expectedStatus);
 
+      expect(res.status).to.equal(expectedStatus);
       if (expectedStatus === 200) {
         const updatedArticle = await Article.findById(articleId).lean();
         updatedArticle.lostDate = new Date(updatedArticle.lostDate).toLocaleDateString('en-CA');
@@ -451,7 +361,7 @@ describe('ArticleController Update Tests', function () {
 
         expect(updatedArticle).to.include(removeNotEditableProperties(articleValidDataWithoutLocationUpdateImageList));
         expect(updatedArticle).to.have.property('location').that.deep.equals(data.location);
-        expect(updatedArticle.isDelete).to.equal(expectedIsDelete);
+        expect(updatedArticle.isDelete).to.equal(false);
         expect(updatedArticle.createdAt).to.not.equal(data.createdAt);
         expect(updatedArticle.updatedAt).to.not.equal(data.updatedAt);
       }
@@ -878,6 +788,10 @@ describe('ArticleController searchArticleList Tests', function () {
       lostDistrict: '內湖區',
       hasReward: true,
       rewardAmount: 50000,
+      breed: '英國短毛貓',
+      size: 'M',
+      age: 1.3,
+      gender: 'F',
       hasMicrochip: true,
       title: 'Lost Orange Cat',
       content: 'Lost in Neihu District.',
@@ -889,6 +803,10 @@ describe('ArticleController searchArticleList Tests', function () {
       lostDate: new Date('2024-02-18'),
       lostCityCode: 'T',
       lostDistrict: '信義區',
+      breed: '邊境牧羊犬',
+      size: 'L',
+      age: 1,
+      gender: 'M',
       hasReward: false,
       hasMicrochip: false,
       title: 'Lost Black Dog',
@@ -951,31 +869,55 @@ describe('ArticleController searchArticleList Tests', function () {
       body: {
         petType: '貓',
         color: '橘',
-        location: { type: 'Point', coordinates: [121.5111, 25.05111] },
+        bottomLeft: { lat: 25.0, lng: 121.5 },
+        topRight: { lat: 25.1, lng: 121.6 },
         lostDate: '2024-02-19',
         lostCityCode: 'A',
         lostDistrict: '內湖區',
         hasReward: true,
         rewardAmount: 50000,
         hasMicrochip: true,
+        title: 'Lost Orange Cat',
+        content: 'Lost in Neihu District.',
+        age: 1.3,
+        gender: 'F',
+        size: 'M',
+        breed: '英國短毛貓',
         skip: 0,
         limit: 10,
       },
       expectedStatus: 200,
       expectedArticlesCount: 1,
     },
-    // Case 2: Missing all required fields
+    // Case 2: Missing required fields
     {
-      name: 'missing all required fields',
+      name: 'missing required fields bottomLeft',
       body: {
+        petType: '貓',
+        color: '橘',
+        // bottomLeft: { lat: 25.0, lng: 121.5 },
+        topRight: { lat: 25.1, lng: 121.6 },
         lostDate: '2024-02-19',
+        lostCityCode: 'A',
+        lostDistrict: '內湖區',
+        hasReward: true,
+        rewardAmount: 50000,
+        hasMicrochip: true,
+        title: 'Lost Orange Cat',
+        content: 'Lost in Neihu District.',
+        age: 1.3,
+        gender: 'F',
+        size: 'M',
+        breed: '英國短毛貓',
+        skip: 0,
+        limit: 10,
       },
       expectedStatus: 422,
       expectedArticlesCount: 0,
     },
-    // Case 3: Missing some required fields
+    // Case 3: Missing some required fields (petType, bottomLeft, and topRight)
     {
-      name: 'missing some required fields (petType and location)',
+      name: 'missing some required fields (petType, bottomLeft, and topRight)',
       body: {
         color: '黑',
         lostDate: '2024-02-19',
@@ -989,18 +931,28 @@ describe('ArticleController searchArticleList Tests', function () {
       body: {
         petType: 'rabbit', // Assuming only '貓' and '狗' are valid
         color: '黑',
-        location: { type: 'Point', coordinates: [121.5111, 25.05111] },
+        bottomLeft: { lat: 25.0, lng: 121.5 },
+        topRight: { lat: 25.1, lng: 121.6 },
       },
       expectedStatus: 422,
       expectedArticlesCount: 0,
     },
-    // Case 5: Invalid location format
+    // Case 5-1: Invalid region distance
     {
-      name: 'invalid location format',
+      name: 'Invalid search with too large region',
       body: {
-        petType: '狗',
-        color: '黑',
-        location: { type: 'Point', coordinates: ['invalid', 'invalid'] },
+        bottomLeft: { lat: 25.0, lng: 121.5 },
+        topRight: { lat: 27.1, lng: 121.6 },
+      },
+      expectedStatus: 422,
+      expectedArticlesCount: 0,
+    },
+    // Case 5-2: Invalid two point order
+    {
+      name: 'Invalid search with two point order',
+      body: {
+        bottomLeft: { lat: 25.1, lng: 121.5 },
+        topRight: { lat: 25.0, lng: 121.6 },
       },
       expectedStatus: 422,
       expectedArticlesCount: 0,
@@ -1011,7 +963,8 @@ describe('ArticleController searchArticleList Tests', function () {
       body: {
         petType: '狗',
         color: '黑',
-        location: { type: 'Point', coordinates: [121.5, 25.05] },
+        bottomLeft: { lat: 25.0, lng: 121.5 },
+        topRight: { lat: 25.1, lng: 121.6 },
       },
       expectedStatus: 200,
       expectedArticlesCount: 1,
@@ -1022,7 +975,8 @@ describe('ArticleController searchArticleList Tests', function () {
       body: {
         petType: '貓',
         color: '黑',
-        location: { type: 'Point', coordinates: [121.5, 25.05] },
+        bottomLeft: { lat: 25.0, lng: 121.5 },
+        topRight: { lat: 25.1, lng: 121.6 },
       },
       expectedStatus: 200,
       expectedArticlesCount: 0,
@@ -1033,7 +987,8 @@ describe('ArticleController searchArticleList Tests', function () {
       body: {
         petType: '貓',
         color: '橘',
-        location: { type: 'Point', coordinates: [121.5, 25.05] },
+        bottomLeft: { lat: 25.0, lng: 121.5 },
+        topRight: { lat: 25.1, lng: 121.6 },
         skip: 0,
         limit: 1,
       },
@@ -1046,7 +1001,8 @@ describe('ArticleController searchArticleList Tests', function () {
       body: {
         petType: '狗',
         color: '黑',
-        location: { type: 'Point', coordinates: [121.5, 25.05] },
+        bottomLeft: { lat: 25.0, lng: 121.5 },
+        topRight: { lat: 25.1, lng: 121.6 },
         skip: 0,
         limit: 100, // Assuming max limit is 50
       },
@@ -1059,12 +1015,13 @@ describe('ArticleController searchArticleList Tests', function () {
       body: {
         petType: '狗',
         color: '黑',
-        location: { type: 'Point', coordinates: [121.5, 25.05] },
+        bottomLeft: { lat: 25.0, lng: 121.5 },
+        topRight: { lat: 25.1, lng: 121.6 },
         skip: -10,
         limit: 10,
       },
-      expectedStatus: 200,
-      expectedArticlesCount: 1, // skip should default to 0
+      expectedStatus: 422,
+      expectedArticlesCount: 0, 
     },
     // Case 11: Invalid date format
     {
@@ -1072,30 +1029,32 @@ describe('ArticleController searchArticleList Tests', function () {
       body: {
         petType: '貓',
         color: '橘',
-        location: { type: 'Point', coordinates: [121.5, 25.05] },
+        bottomLeft: { lat: 25.0, lng: 121.5 },
+        topRight: { lat: 25.1, lng: 121.6 },
         lostDate: '20th Feb 2024', // Invalid format
       },
       expectedStatus: 422,
       expectedArticlesCount: 0,
     },
-    // Case 12: Missing location coordinates
+    // Case 12: Missing location coordinates (missing topRight)
     {
-      name: 'missing location coordinates',
+      name: 'missing location coordinates (missing topRight)',
       body: {
         petType: '貓',
         color: '橘',
-        location: { type: 'Point' }, // Coordinates missing
+        bottomLeft: { lat: 25.0, lng: 121.5 },
       },
       expectedStatus: 422,
       expectedArticlesCount: 0,
     },
-    // Case 13: pure hasReward is accepted
+    // Case 13: Pure hasReward is accepted
     {
       name: 'pure hasReward is accepted',
       body: {
         petType: '貓',
         color: '橘',
-        location: { type: 'Point', coordinates: [121.5111, 25.05111] },
+        bottomLeft: { lat: 25.0, lng: 121.5 },
+        topRight: { lat: 25.1, lng: 121.6 },
         hasReward: true,
       },
       expectedStatus: 200,
@@ -1107,7 +1066,8 @@ describe('ArticleController searchArticleList Tests', function () {
       body: {
         petType: '貓',
         color: '橘',
-        location: { type: 'Point', coordinates: [121.5, 25.05] },
+        bottomLeft: { lat: 25.0, lng: 121.5 },
+        topRight: { lat: 25.1, lng: 121.6 },
         hasReward: false,
         rewardAmount: 1000,
       },
@@ -1120,7 +1080,8 @@ describe('ArticleController searchArticleList Tests', function () {
       body: {
         petType: '貓',
         color: '橘',
-        location: { type: 'Point', coordinates: [121.5, 25.05] },
+        bottomLeft: { lat: 25.0, lng: 121.5 },
+        topRight: { lat: 25.1, lng: 121.6 },
         hasMicrochip: 'yes', // Should be a boolean
       },
       expectedStatus: 422,
@@ -1128,23 +1089,24 @@ describe('ArticleController searchArticleList Tests', function () {
     },
   ];
 
+
   testCases.forEach(({ name, body, expectedStatus, expectedArticlesCount }) => {
     it(`searchArticleList - ${name}`, async () => {
       const res = await request(app)
         .post('/article')
         .set('Content-Type', 'application/json')
         .send(body);
-console.log(res.message);
-      expect(res.status).to.equal(expectedStatus);
       // console.log(res.body);
+      expect(res.status).to.equal(expectedStatus);
       if (expectedStatus === 200) {
-        expect(res.body.data).to.have.property('articleList');
-        expect(res.body.data.articleList).to.be.an('array');
-        expect(res.body.data.articleList.length).to.equal(expectedArticlesCount);
+        expect(res.body.data).to.have.property('articles');
+        expect(res.body.data).to.have.property('region');
+        expect(res.body.data.articles).to.be.an('array');
+        expect(res.body.data.articles.length).to.equal(expectedArticlesCount);
 
         // Additional checks to ensure returned articles match the search criteria
         if (expectedArticlesCount > 0) {
-          res.body.data.articleList.forEach((article) => {
+          res.body.data.articles.forEach((article) => {
             expect(article).to.have.property('petType', body.petType);
             expect(article).to.have.property('color', body.color);
             // You can add more field checks as needed

@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import ResponseHandler from '../middlewares/ResponseHandler.js';
-import { calculateDistance } from '../infrastructure/utils/geoCalculationTool.js';
+
+import { extendRegion } from '../utils/geo/region.js';
 // import Board from '../models/board.js';
 // import ArticleImageList from '../models/articleImageList.js';
 // import Draft from '../models/draft.js';
@@ -11,20 +12,20 @@ import imageService from '../services/imageService.js'
 import previewImageService from '../services/previewImageService.js'
 import articleService from '../services/articleService.js'
 import s3Service from '../services/s3Service.js'
-import { processImage } from '../utils/image.js';
-
-// import { initializeDraftAndSave } from '../services/draft.js'
-// import { deleteRedundantImages } from '../services/image.js'
-
-import { splitImageList, extractUniqueImageUrlsFromContent } from '../infrastructure/utils/htmlTool.js';
+import articleConfigs from '../infrastructure/configs/articleConfigs.js';
 
 export async function createArticle(req, res) {
-  const { petType, color, content, location, lostDate, lostCityCode, lostDistrict, hasReward, rewardAmount, hasMicrochip } = req.body;
+  const { petType, color, content, title, gender, age, breed, size, location, lostDate, lostCityCode, lostDistrict, hasReward, rewardAmount, hasMicrochip } = req.body;
   const newArticleData = {
     user: req.user._id,
     petType,
     color,
+    title,
     content,
+    gender,
+    age,
+    breed,
+    size,
     location,
     lostDate,
     lostCityCode,
@@ -37,7 +38,7 @@ export async function createArticle(req, res) {
   try {
     session.startTransaction();
     const [newArticle] = await articleService.createArticleSession(newArticleData, session);
-    ResponseHandler.successObject(res, "articleCreated", newArticle, 201);
+    ResponseHandler.successObject(res, "articleCreated", newArticle, 200);
     await session.commitTransaction();
   } catch (error) {
     await session.abortTransaction();
@@ -49,12 +50,17 @@ export async function createArticle(req, res) {
 
 export async function updateArticle(req, res) {
   const { id: strArticleId } = req.params;
-  const { petType, color, content, location, lostDate, lostCityCode, lostDistrict, hasReward, rewardAmount, hasMicrochip } = req.body;
+  const { petType, color, content, title, gender, age, breed, size, location, lostDate, lostCityCode, lostDistrict, hasReward, rewardAmount, hasMicrochip } = req.body;
   const updateData = {
     user: req.user._id,
     petType,
     color,
+    title,
     content,
+    gender,
+    age,
+    breed,
+    size,
     location,
     lostDate,
     lostCityCode,
@@ -166,35 +172,11 @@ const formatArticleWithIsSelf = (articleDocument, userId) => {
 export const searchArticleList = async (req, res, next) => {
   try {
     const formatedFilter = req.filter || {}
-    const { bottomLeft, topRight,  skip = 0, limit = 1000 } = req.body;
-    // Validate Coordinates
-    if (!bottomLeft || !topRight) {
-      throw new ValidateObjectError("validation.invalidType");
-    }
+    const { bottomLeft, topRight, skip = 0, limit = articleConfigs.search.limit } = req.body;
+    const { adjustedBottomLeft, adjustedTopRight } = extendRegion(bottomLeft, topRight);
 
-    // Calculate width and height to ensure the region isn't too large (optional)
-    const maxDistance = 50000; // 50 km, for example
-    const bufferMultiplier = 1.5; // Add a buffer to the search area
-
-    // Adjust bottomLeft and topRight to include a buffer
-    const adjustedBottomLeft = {
-      lat: bottomLeft.lat - (topRight.lat - bottomLeft.lat) * (bufferMultiplier - 1) / 2,
-      lng: bottomLeft.lng - (topRight.lng - bottomLeft.lng) * (bufferMultiplier - 1) / 2,
-    };
-
-    const adjustedTopRight = {
-      lat: topRight.lat + (topRight.lat - bottomLeft.lat) * (bufferMultiplier - 1) / 2,
-      lng: topRight.lng + (topRight.lng - bottomLeft.lng) * (bufferMultiplier - 1) / 2,
-    };
-
-    // Rough estimation to check if the region is too large
-    const estimatedDistance = calculateDistance(adjustedBottomLeft.lat, adjustedBottomLeft.lng, adjustedTopRight.lat, adjustedTopRight.lng);
-    if (estimatedDistance > maxDistance) {
-      throw new ValidateObjectError("searchAreaTooLarge");
-    }
-    // Query the database using the adjusted coordinates
     const articles = await articleService.getArticleList(adjustedBottomLeft, adjustedTopRight, formatedFilter, skip, limit, req.user?._id.toString());
-    // If articles are found, send them back
+
     return ResponseHandler.successObject(res, "", { articles: articles, region: { bottomLeft: adjustedBottomLeft, topRight: adjustedTopRight } });
   } catch (error) {
     next(error);

@@ -1,15 +1,10 @@
 import mongoose from 'mongoose'
 import { trusted } from 'mongoose'
-import anValidator from 'an-validator';
 
 import * as articleValidator from "../../utils/validator/articleValidator.js"
 import ValidationError from '../../infrastructure/errors/ValidationError.js'
 import ValidationObjectError from '../../infrastructure/errors/ValidationObjectError.js'
 
-//email在驗證碼就檢查完，所以這邊不用再檢查了
-const { rules, validateByRules } = anValidator;
-// const window = new JSDOM('').window;
-// const DOMPurify = createDOMPurify(window);
 
 function validAllFieldsPresent(fields) {
   for (const key in fields) {
@@ -26,9 +21,10 @@ export const validateCreateArticle = (req, res, next) => {
 };
 
 function basicValidateArticle(req) {
-  const { petType, color, content, location, lostDate, lostCityCode, lostDistrict, hasReward, rewardAmount, hasMicrochip } = req.body;
+  const { petType, color, content, title, gender, age, breed, size, location, lostDate, lostCityCode, lostDistrict, hasReward, rewardAmount, hasMicrochip } = req.body;
 
-  const mustInputFields = { petType, color, content, location, lostDate, lostCityCode, lostDistrict, hasReward, hasMicrochip };
+  // 只有 rewardAmount 非必填
+  const mustInputFields = { petType, color, content, title, gender, age, breed, size, location, lostDate, lostCityCode, lostDistrict, hasReward, hasMicrochip };
   validAllFieldsPresent(mustInputFields);
 
   articleValidator.validatePetType(petType)
@@ -38,6 +34,12 @@ function basicValidateArticle(req) {
   articleValidator.validateLostCityCode(lostCityCode);
   articleValidator.validateLostDistrict(lostCityCode, lostDistrict);
 
+  articleValidator.validateGender(gender)
+  articleValidator.validateAge(age)
+  articleValidator.validateBreed(petType, breed)
+  articleValidator.validateSize(size)
+
+  articleValidator.validateTitle(title)
   articleValidator.validateContent(content)
 
   articleValidator.validateHasReward(hasReward)
@@ -52,13 +54,24 @@ export const validateUpdateArticle = (req, res, next) => {
 };
 
 export const validateSearchArticleList = async (req, res, next) => {
-  const { petType, color, lostDate, lostCityCode, lostDistrict, hasReward, rewardAmount, hasMicrochip } = req.body.filter;
+  const { bottomLeft, topRight, skip, limit, petType, color, gender, age, breed, size, lostDate, lostCityCode, lostDistrict, hasReward, rewardAmount, hasMicrochip } = req.body;
+
+  const mustInputFields = { bottomLeft, topRight };
+  validAllFieldsPresent(mustInputFields);
+  articleValidator.validateRegionDistance(bottomLeft, topRight)
+  articleValidator.validateSearchSkip(skip)
+  articleValidator.validateSearchLimit(limit)
+  // 只有 rewardAmount 非必填
   // 查詢這幾項必填
   // const mustInputFields = { petType, color, location };
   // validAllFieldsPresent(mustInputFields);
 
   articleValidator.validatePetType(petType)
   articleValidator.validateColor(petType, color)
+  articleValidator.validateGender(gender)
+  articleValidator.validateAge(age)
+  articleValidator.validateBreed(petType, breed)
+  articleValidator.validateSize(size)
   // articleValidator.validateLocation(location)
   articleValidator.validateLostDate(lostDate);
   articleValidator.validateLostCityCode(lostCityCode);
@@ -69,10 +82,11 @@ export const validateSearchArticleList = async (req, res, next) => {
   articleValidator.validateSearchRewardAmount(hasReward, rewardAmount);
   articleValidator.validateHasMicrochip(hasMicrochip);
   req.filter = Object.fromEntries(
-    Object.entries({ petType, color, lostDate, lostCityCode, lostDistrict, hasReward, rewardAmount, hasMicrochip })
+    Object.entries({ petType, color, gender, age, breed, size, lostDate, lostCityCode, lostDistrict, hasReward, rewardAmount, hasMicrochip })
       .filter(([key, value]) => value !== undefined)
   );
-  if(req.filter.lostDate){req.filter.lostDate = trusted({ $gte: new Date(lostDate) })}  
+  if (req.filter.rewardAmount) { req.filter.rewardAmount = trusted({ $gte: req.filter.rewardAmount }) }
+  if (req.filter.lostDate) { req.filter.lostDate = trusted({ $gte: new Date(lostDate) }) }
   next()
 };
 

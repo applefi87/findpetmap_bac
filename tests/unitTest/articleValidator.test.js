@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import sinon from 'sinon';
+import articleConfigs from "../../src/infrastructure/configs/articleConfigs.js"
 import * as articleValidator from '../../src/utils/validator/articleValidator.js';
 import ValidationError from '../../src/infrastructure/errors/ValidationError.js';
 
@@ -23,6 +23,7 @@ describe('Article Validator', () => {
       expect(() => articleValidator.validatePetType(null)).to.not.throw();
     });
   });
+
 
   describe('validateColor', () => {
     it('should not throw an error for valid color for cat', () => {
@@ -61,6 +62,128 @@ describe('Article Validator', () => {
       expect(() => articleValidator.validateColor(petType, null)).to.not.throw();
     });
   });
+
+  describe('validateBreed', () => {
+    it('should not throw an error for valid breed for cat', () => {
+      const petType = '貓';
+      const validBreed = '英國短毛貓';
+      expect(() => articleValidator.validateBreed(petType, validBreed)).to.not.throw();
+    });
+
+    it('should not throw an error for valid breed for dog', () => {
+      const petType = '狗';
+      const validBreed = '拉布拉多';
+      expect(() => articleValidator.validateBreed(petType, validBreed)).to.not.throw();
+    });
+
+    it('should throw an error for invalid breed for pet type', () => {
+      const petType = '貓';
+      const invalidBreed = '貴賓犬';
+      expect(() => articleValidator.validateBreed(petType, invalidBreed)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === 'breedInvalid';
+        });
+    });
+
+    it('should throw an error for valid breed but invalid pet type', () => {
+      const petType = '兔子';
+      const breed = '拉布拉多';
+      expect(() => articleValidator.validateBreed(petType, breed)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === 'petTypeInvalid';
+        });
+    });
+
+    it('should not throw an error if breed is undefined or null', () => {
+      const petType = '貓';
+      expect(() => articleValidator.validateBreed(petType, undefined)).to.not.throw();
+      expect(() => articleValidator.validateBreed(petType, null)).to.not.throw();
+    });
+  });
+
+  describe('validateSize', () => {
+    it('should not throw an error for valid size S', () => {
+      const validSize = 'S';
+      expect(() => articleValidator.validateSize(validSize)).to.not.throw();
+    });
+    it('should not throw an error for valid size XL', () => {
+      const validSize = 'XL';
+      expect(() => articleValidator.validateSize(validSize)).to.not.throw();
+    });
+
+    it('should throw an error for invalid size', () => {
+      const invalidSize = 'x型';
+      expect(() => articleValidator.validateSize(invalidSize)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === 'sizeInvalid';
+        });
+    });
+
+    it('should not throw an error if size is undefined or null', () => {
+      expect(() => articleValidator.validateSize(undefined)).to.not.throw();
+      expect(() => articleValidator.validateSize(null)).to.not.throw();
+    });
+  });
+
+  describe('validateGender', () => {
+    it('should not throw an error for valid gender F', () => {
+      const validGender = 'F';
+      expect(() => articleValidator.validateGender(validGender)).to.not.throw();
+    });
+
+    it('should not throw an error for valid gender M', () => {
+      const validGender = 'M';
+      expect(() => articleValidator.validateGender(validGender)).to.not.throw();
+    });
+
+    it('should throw an error for invalid gender', () => {
+      const invalidGender = '未知';
+      expect(() => articleValidator.validateGender(invalidGender)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === 'genderInvalid';
+        });
+    });
+
+    it('should not throw an error if gender is undefined or null', () => {
+      expect(() => articleValidator.validateGender(undefined)).to.not.throw();
+      expect(() => articleValidator.validateGender(null)).to.not.throw();
+    });
+  });
+  const ageMin = articleConfigs.age.min
+  const ageMax = articleConfigs.age.max
+  describe('validateAge', () => {
+    it('should not throw an error for valid age within range', () => {
+      const validAge = 5;
+      expect(() => articleValidator.validateAge(validAge)).to.not.throw();
+    });
+
+    it('should not throw an error for valid age in decimal', () => {
+      const validAge = 0.1;
+      expect(() => articleValidator.validateAge(validAge)).to.not.throw();
+    });
+
+    it('should throw an error for age below minimum', () => {
+      const invalidAge = -1;
+      expect(() => articleValidator.validateAge(invalidAge)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === 'ageBetween' && error.data.min === ageMin && error.data.max === ageMax;
+        });
+    });
+
+    it('should throw an error for age above maximum', () => {
+      const invalidAge = 31;
+      expect(() => articleValidator.validateAge(invalidAge)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === 'ageBetween' && error.data.min === ageMin && error.data.max === ageMax;
+        });
+    });
+
+    it('should not throw an error if age is undefined or null', () => {
+      expect(() => articleValidator.validateAge(undefined)).to.not.throw();
+      expect(() => articleValidator.validateAge(null)).to.not.throw();
+    });
+  });
+
 
   describe('validateCoordinates', () => {
     it('should not throw an error for valid coordinates', () => {
@@ -350,4 +473,118 @@ describe('Article Validator', () => {
       ]);
     });
   });
+
+  const articleTitleLengthMin = articleConfigs.title.minLength;
+  const articleTitleLengthMax = articleConfigs.title.maxLength;
+
+  describe('validateTitle', () => {
+    it('should not throw an error for valid title within range', () => {
+      const validTitle = 'a'.repeat(articleTitleLengthMin + 1);
+      expect(() => articleValidator.validateTitle(validTitle)).to.not.throw();
+    });
+
+    it('should throw an error for title below minimum length', () => {
+      const shortTitle = 'a'.repeat(articleTitleLengthMin - 1);
+      expect(() => articleValidator.validateTitle(shortTitle)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === 'articleTitleBetween' &&
+            error.data.min === articleTitleLengthMin &&
+            error.data.max === articleTitleLengthMax;
+        });
+    });
+
+    it('should throw an error for title above maximum length', () => {
+      const longTitle = 'a'.repeat(articleTitleLengthMax + 1);
+      expect(() => articleValidator.validateTitle(longTitle)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === 'articleTitleBetween' &&
+            error.data.min === articleTitleLengthMin &&
+            error.data.max === articleTitleLengthMax;
+        });
+    });
+
+    it('should not throw an error if title is undefined or null', () => {
+      expect(() => articleValidator.validateTitle(undefined)).to.not.throw();
+      expect(() => articleValidator.validateTitle(null)).to.not.throw();
+    });
+  });
+
+  const articleContentLengthMin = articleConfigs.content.minLength;
+  const articleContentLengthMax = articleConfigs.content.maxLength;
+
+  describe('validateContent', () => {
+    it('should not throw an error for valid content within range', () => {
+      const validContent = 'a'.repeat(articleContentLengthMin + 1);
+      expect(() => articleValidator.validateContent(validContent)).to.not.throw();
+    });
+
+    it('should throw an error for content below minimum length', () => {
+      const shortContent = 'a'.repeat(articleContentLengthMin - 1);
+      expect(() => articleValidator.validateContent(shortContent)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === 'articleContentBetween' &&
+            error.data.min === articleContentLengthMin &&
+            error.data.max === articleContentLengthMax;
+        });
+    });
+
+    it('should throw an error for content above maximum length', () => {
+      console.log(articleContentLengthMax + 1);
+      const longContent = 'a'.repeat(articleContentLengthMax + 2);
+
+      expect(() => articleValidator.validateContent(longContent)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          console.log(error);
+          return error.validationResult.message.title === 'articleContentBetween' &&
+            error.data.min === articleContentLengthMin &&
+            error.data.max === articleContentLengthMax;
+        });
+    });
+
+    it('should not throw an error if content is undefined or null', () => {
+      expect(() => articleValidator.validateContent(undefined)).to.not.throw();
+      expect(() => articleValidator.validateContent(null)).to.not.throw();
+    });
+  });
+
+  describe('validateRegionDistance', () => {
+    it('should not throw an error for valid region distance', () => {
+      const bottomLeft = { lat: 25.0340, lng: 121.5645 }; // Example coordinates
+      const topRight = { lat: 25.0840, lng: 121.6145 };
+      expect(() => articleValidator.validateRegionDistance(bottomLeft, topRight)).to.not.throw();
+    });
+
+    it('should throw an error if bottomLeft latitude is greater than topRight latitude', () => {
+      const bottomLeft = { lat: 25.0840, lng: 121.5645 };
+      const topRight = { lat: 25.0340, lng: 121.6145 };
+      expect(() => articleValidator.validateRegionDistance(bottomLeft, topRight)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === 'geoRegionPointsWrongOrder';
+        });
+    });
+
+    it('should throw an error if bottomLeft longitude is greater than topRight longitude', () => {
+      const bottomLeft = { lat: 25.0340, lng: 121.6145 };
+      const topRight = { lat: 25.0840, lng: 121.5645 };
+      expect(() => articleValidator.validateRegionDistance(bottomLeft, topRight)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === 'geoRegionPointsWrongOrder';
+        });
+    });
+
+    it('should throw an error if the estimated distance is greater than the maximum allowed', () => {
+      const bottomLeft = { lat: 25.0340, lng: 121.5645 };
+      const topRight = { lat: 26.0340, lng: 122.5645 }; // This should exceed the maxDistance
+      expect(() => articleValidator.validateRegionDistance(bottomLeft, topRight)).to.throw(ValidationError)
+        .and.to.satisfy((error) => {
+          return error.validationResult.message.title === 'searchAreaTooLarge';
+        });
+    });
+
+    it('should not throw an error if bottomLeft or topRight is undefined or null', () => {
+      expect(() => articleValidator.validateRegionDistance(undefined, { lat: 25.0840, lng: 121.6145 })).to.not.throw();
+      expect(() => articleValidator.validateRegionDistance({ lat: 25.0340, lng: 121.5645 }, null)).to.not.throw();
+    });
+  });
+
 });

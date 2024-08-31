@@ -3,7 +3,7 @@ import mongoose from 'mongoose'
 import anValidator from 'an-validator';
 import articleConfigs from "../../infrastructure/configs/articleConfigs.js"
 import { cityCodeList, cityCodeToAreaList } from "../../infrastructure/configs/cityConfigs.js"
-
+import { calculateDistance } from '../../infrastructure/utils/geoCalculationTool.js';
 import ValidationObjectError from '../../infrastructure/errors/ValidationObjectError.js';
 
 const { rules, validateByRules } = anValidator;
@@ -12,6 +12,41 @@ export const validatePetType = (petType) => {
   if (checkNoValue(petType)) { return }
   if (!articleConfigs.petType.includes(petType)) {
     throw new ValidationObjectError(`petTypeInvalid`);
+  }
+};
+
+export const validateBreed = (petType, breed) => {
+  if (checkNoValue(breed)) { return }
+  validatePetType(petType)
+  if (petType === '貓' && articleConfigs.catBreedEnum.includes(breed)) {
+    return
+  } else if (petType === '狗' && articleConfigs.dogBreedEnum.includes(breed)) {
+    return
+  }
+  throw new ValidationObjectError(`breedInvalid`);
+};
+
+export const validateGender = (gender) => {
+  if (checkNoValue(gender)) { return }
+  if (!articleConfigs.genderEnum.includes(gender)) {
+    throw new ValidationObjectError(`genderInvalid`);
+  }
+};
+const ageMin = articleConfigs.age.min
+const ageMax = articleConfigs.age.max
+export const validateAge = (age) => {
+  if (checkNoValue(age)) { return }
+  if (typeof age === 'number' && age >= ageMin && age <= ageMax) {
+    return
+  } else {
+    throw new ValidationObjectError("ageBetween", { min: ageMin, max: ageMax });
+  }
+};
+
+export const validateSize = (size) => {
+  if (checkNoValue(size)) { return }
+  if (!articleConfigs.sizeEnum.includes(size)) {
+    throw new ValidationObjectError(`sizeInvalid`);
   }
 };
 
@@ -127,10 +162,18 @@ export const validateHasMicrochip = (hasMicrochip) => {
 const articleContentLengthMin = articleConfigs.content.minLength
 const articleContentLengthMax = articleConfigs.content.maxLength
 
-export async function validateContent(content) {
+export function validateContent(content) {
   if (checkNoValue(content)) { return }
   const contentValidateResult = validateByRules(content, rules.createLengthBetweenRule(articleContentLengthMin, articleContentLengthMax))
   if (!contentValidateResult.success) throw new ValidationObjectError("articleContentBetween", { min: articleContentLengthMin, max: articleContentLengthMax });
+}
+
+const articleTitleLengthMin = articleConfigs.title.minLength
+const articleTitleLengthMax = articleConfigs.title.maxLength
+export function validateTitle(title) {
+  if (checkNoValue(title)) { return }
+  const titleValidateResult = validateByRules(title, rules.createLengthBetweenRule(articleTitleLengthMin, articleTitleLengthMax))
+  if (!titleValidateResult.success) throw new ValidationObjectError("articleTitleBetween", { min: articleTitleLengthMin, max: articleTitleLengthMax });
 }
 
 // 這個都是可接受沒有
@@ -167,6 +210,36 @@ export const validUpdateImageList = (req) => {
         alreadyHasPreview = true
       }
     }
+  }
+}
+
+export function validateRegionDistance(bottomLeft, topRight) {
+  if (checkNoValue(bottomLeft) || checkNoValue(topRight)) { return }
+  // TODO 如果在特殊地方就不能限制這段，但經緯度計算也要重調整公式
+  if (bottomLeft.lat > topRight.lat) {
+    throw new ValidationObjectError('geoRegionPointsWrongOrder');
+  }
+  if (bottomLeft.lng > topRight.lng) {
+    throw new ValidationObjectError('geoRegionPointsWrongOrder');
+  }
+  // Rough estimation to check if the region is too large
+  const estimatedDistance = calculateDistance(bottomLeft.lat, bottomLeft.lng, topRight.lat, topRight.lng);
+  if (estimatedDistance > articleConfigs.region.maxDistance) {
+    throw new ValidationObjectError("searchAreaTooLarge");
+  }
+}
+
+export function validateSearchSkip(skip) {
+  if (checkNoValue(skip)) { return }
+  if (typeof skip !== 'number'|| skip < 0|| skip > articleConfigs.search.skip) {
+    throw new ValidationObjectError('validation.invalidType');
+  }
+}
+
+export function validateSearchLimit(limit) {
+  if (checkNoValue(limit)) { return }
+  if (typeof limit !== 'number'|| limit < 0|| limit > articleConfigs.search.limit) {
+    throw new ValidationObjectError('validation.invalidType');
   }
 }
 

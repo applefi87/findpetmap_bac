@@ -17,7 +17,7 @@ const pointSchema = new mongoose.Schema({
     type: [Number],
     validator: function (value) {
       return value.length === 2 &&
-      // 注意與備註，後台統一輸入都是先經再緯
+        // 注意與備註，後台統一輸入都是先經再緯
         value[0] >= -180 && value[0] <= 180 &&  // Longitude range
         value[1] >= -90 && value[1] <= 90;      // Latitude range
     },
@@ -32,9 +32,34 @@ const schema = new mongoose.Schema({
     ref: 'User',
     required: [true, '缺少創建者']
   },
+  title: {
+    type: String,
+    required: [true, '缺少標題']
+  },
   petType: {
     type: String,
     enum: articleConfigs.petType,
+    required: true
+  },
+  breed: {
+    type: String,
+    enum: articleConfigs.breedEnum,
+    required: true
+  },
+  gender: {
+    type: String,
+    enum: articleConfigs.genderEnum,
+    required: true
+  },
+  age: {
+    type: Number,
+    min: articleConfigs.age.min,
+    max: articleConfigs.age.max,
+    required: true
+  },
+  size: {
+    type: String,
+    enum: articleConfigs.sizeEnum,
     required: true
   },
   color: {
