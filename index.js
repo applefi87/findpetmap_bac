@@ -6,7 +6,7 @@ import fs from 'fs';
 import createApp from './src/createApp.js';
 import ResponseHandler from './src/middlewares/ResponseHandler.js';
 import PageNotFoundError from './src/infrastructure/errors/PageNotFoundError.js';
-import Article from './src/models/articleModel.js';
+import Image from './src/models/imageModel.js';
 // import "./test.js"
 
 const app = createApp();
@@ -21,15 +21,17 @@ const options = {
   cert: fs.readFileSync('./cert/cert.pem')
 };
 
-// Create an HTTPS server
-const server = https.createServer(options, app).listen(port, () => {
-  console.log('HTTPS Server running on port ' + port);
-});
+let server
+if (process.env.NODE_ENV === 'development') {
+  server = https.createServer(options, app).listen(port, () => {
+    console.log('HTTPS Server running on port ' + port);
+  });
+} else if (process.env.NODE_ENV === 'production') {
+  server = http.createServer(app).listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
+}
 
-// const server = http.createServer(app);
-// server.listen(port, () => {
-//   console.log(`Server is running on port ${port}`);
-// });
 export default server;
 
 // Haversine formula to calculate distance
@@ -97,6 +99,9 @@ const generateRandomLocations = () => {
 //   .catch((err) => {
 //     console.error('Error inserting articles:', err);
 //   });
+// update all image  isDelte = false
+// await Image.updateMany({},{ $set: { isDelete: false } })
+// 
 
 // //**** */
 // const io = new Server(server, { cors: corsOption });

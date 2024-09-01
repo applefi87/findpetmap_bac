@@ -1,4 +1,4 @@
-import { trusted ,sanitizeFilter} from 'mongoose'
+import { trusted, sanitizeFilter } from 'mongoose'
 import imageRepository from '../repositories/imageRepository.js'
 
 async function findImageListByArticleId(strArticleId, selectString = undefined, isLean = false) {
@@ -13,8 +13,8 @@ async function createImageSession(imageObj, session) {
   return await imageRepository.createImage([imageObj], { session })
 }
 
-async function deleteImageListByExceptIdListSession(strExceptOidArray, session) {
-  return await imageRepository.updateManyImage({ _id: trusted({ $nin: strExceptOidArray }) }, { isDelete: true }, { session })
+async function deleteArticleImagesByExceptIdsSession(strExceptOidArray, strArticleId, session) {
+  return await imageRepository.updateManyImage({ _id: trusted({ $nin: strExceptOidArray }), resource: strArticleId }, { isDelete: true }, { session })
 }
 
 async function bulkUpdateImageListByIdSetPreview(updateImageList, session) {
@@ -29,5 +29,5 @@ async function bulkUpdateImageListByIdSetPreview(updateImageList, session) {
 
 
 export default {
-  findImageListByArticleId, findImageByIdSession, createImageSession, deleteImageListByExceptIdListSession, bulkUpdateImageListByIdSetPreview
+  findImageListByArticleId, findImageByIdSession, createImageSession, deleteArticleImagesByExceptIdsSession, bulkUpdateImageListByIdSetPreview
 }

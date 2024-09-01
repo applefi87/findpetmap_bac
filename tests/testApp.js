@@ -1,4 +1,4 @@
-import { connectToMemoryDB } from './preload.js'
+import './preload.js'
 import routes from './testRoute.js';
 import createApp from '../src/createApp.js';
 import mongoose from 'mongoose'

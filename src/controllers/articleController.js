@@ -74,7 +74,7 @@ export async function updateArticle(req, res) {
     session.startTransaction();
     const updatedArticle = await articleService.updateArticleSession(strArticleId, updateData, session);
     const keepImageIdList = req.updateImageList.map(image => image.id);
-    await imageService.deleteImageListByExceptIdListSession(keepImageIdList, session);
+    await imageService.deleteArticleImagesByExceptIdsSession(keepImageIdList, strArticleId, session);
     if (req.updateImageList.length > 0) {
       // 預設情況: 本來就要有建立的圖片2張+有預覽圖1張
       // 大邏輯: 預覽圖，只有在增加後才會把舊的改刪除(確保不會沒圖)

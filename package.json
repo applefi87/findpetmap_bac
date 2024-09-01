@@ -48,9 +48,9 @@
     "testdouble": "^3.20.2"
   },
   "scripts": {
-    "dev": "cross-env NODE_ENV=dev nodemon src/index.js",
+    "dev": "cross-env NODE_ENV=development nodemon src/index.js",
     "devMain": "cross-env NODE_ENV=devMain nodemon src/index.js",
-    "start": "cross-env NODE_ENV=dev node src/index.js",
+    "start": "cross-env NODE_ENV=production node src/index.js",
     "test": "mocha --exit",
     "test:all": "mocha 'tests/**/*.test.js' --exit --parallel",
     "prebuild": "npm run generateErrorCodeTable && npm run generateI18nTable",
