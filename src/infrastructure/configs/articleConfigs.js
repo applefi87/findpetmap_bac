@@ -1,3 +1,4 @@
+// 未來名稱後面加enum & 統一 純key, map , select 版本分別叫甚麼
 const petType = ['貓', '狗']
 
 const catColorEnum = [
@@ -92,12 +93,18 @@ const title = {
   minLength: 1,
   maxLength: 10
 };
+
 const content = {
   minLength: 5,
   maxLength: 30000
 };
+
 const genderEnum = ['M', 'F']
+const genderMap = { 'M': "genderMale", 'F': "genderFemale" }
+
 const sizeEnum = ['S', 'M', 'L', 'XL']
+const sizeMap = { 'S': "sizeSmall", 'M': "sizeMedium", 'L': "sizeLarge", 'XL': "sizeExtraLarge" }
+
 const age = {
   min: 0,
   max: 30
@@ -115,4 +122,5 @@ const search = {
 }
 
 
-export default { petType, catColorEnum, dogColorEnum, catBreedEnum, dogBreedEnum, title, content, genderEnum, sizeEnum, age, region , search };
+
+export default { petType, catColorEnum, dogColorEnum, catBreedEnum, dogBreedEnum, title, content, genderEnum, genderMap, sizeEnum, sizeMap, age, region, search };
