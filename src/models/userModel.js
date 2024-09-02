@@ -1,6 +1,4 @@
 
-// import { GiveRatings_Articles, GiveRatings_CommentsL1, GiveRatings_CommentsL2 } from './userRatings/giveRatings.js'
-// import { ReceiveRatings_Articles, ReceiveRatings_CommentsL1, ReceiveRatings_CommentsL2 } from './userRatings/receiveRatings.js'
 import mongoose from 'mongoose'
 import DatabaseError from "../infrastructure/errors/DatabaseError.js"
 
@@ -53,36 +51,27 @@ const schema = new mongoose.Schema({
         type: Number, default: 0
       },
     }
-    // //***判斷驗證碼有效性***
-    // // 驗證碼錯3次就要求重寄
-    // verifyFailTimes: {
-    //   type: Number, default: 0
-    // },
   },
-  profileImage: {
-    type: String,
-    maxlength: [50, 'profileImage Url longer than 50!'],
-  },
+  // profileImage: {
+  //   type: String,
+  //   maxlength: [50, 'profileImage Url longer than 50!'],
+  // },
   info: {
-    contactInfo: {
+    // gender: {
+    //   type: String,
+    // },
+    name: {
       type: String,
+    },
+    phone: {
+      type: String
+    },
+    lineId: {
+      type: String
+    },
+    others: {
+      type: String
     }
-    // living: {
-    //   type: String,
-    //   maxlength: [100, '必須 100 個字以下'],
-    // },
-    // job: {
-    //   type: String,
-    //   maxlength: [30, '必須 30 個字以下'],
-    // },
-    // interest: {
-    //   type: String,
-    //   maxlength: [100, '必須 100 個字以下'],
-    // },
-    // others: {
-    //   type: String,
-    //   maxlength: [100, '必須 100 個字以下'],
-    // }
   },
 }, { versionKey: false })
 

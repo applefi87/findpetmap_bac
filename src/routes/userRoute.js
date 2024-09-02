@@ -1,6 +1,7 @@
 import express from 'express'
 import * as auth from '../middlewares/auth.js'
 import content from '../middlewares/content.js'
+import { validateUserRegistration } from '../middlewares/validator/userValidator.js'
 import {
   register,
   login,
@@ -17,7 +18,7 @@ import {
 const router = express.Router()
 
 
-router.post('/register', content('application/json'), verifyVerificationCode("register", true), register)
+router.post('/register', content('application/json'), validateUserRegistration, verifyVerificationCode("register", true), register)
 router.post('/login', content('application/json'), auth.login("_id nickname role password tokens safety.firstTryAt safety.nextTryAvailableAt safety.totalTryCount"), login)
 router.get('/getMyInfo', auth.jwt("info"), getMyInfo)
 router.delete('/logout', auth.jwt(""), logout)

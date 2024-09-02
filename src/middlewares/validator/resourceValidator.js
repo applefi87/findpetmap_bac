@@ -25,7 +25,7 @@ function basicValidateArticle(req) {
 
   // 只有 rewardAmount 非必填
   const mustInputFields = { petType, color, content, title, gender, age, breed, size, location, lostDate, lostCityCode, lostDistrict, hasReward, hasMicrochip };
-  validAllFieldsPresent(mustInputFields);
+  validAllFieldsPresent(mustInputFields)
 
   articleValidator.validatePetType(petType)
   articleValidator.validateColor(petType, color)

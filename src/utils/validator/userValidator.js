@@ -1,48 +1,11 @@
 import anValidator from 'an-validator';
 import bcrypt from 'bcrypt'
-import User from '../../models/userModel.js'
-import validateAndFormatEmail from '../../infrastructure/utils/validateAndFormatEmail.js'
 import ValidationError from '../../infrastructure/errors/ValidationError.js';
 import ValidationObjectError from '../../infrastructure/errors/ValidationObjectError.js';
+import userConfigs from '../../infrastructure/configs/userConfigs.js';
 
 const { rules, validateByRules } = anValidator;
-//email在驗證碼就檢查完，所以這邊不用再檢查了
-export const validateUserRegistration = async (req) => {
-  //basic validation
-  const accountValidateResult = validateByRules(req.body.account, rules.createAccountRules(8, 20))
-  if (!accountValidateResult.success) throw new ValidationError(accountValidateResult, "account");
-  const nicknameValidateResult = validateByRules(req.body.nickname, rules.createNicknameRules(4, 20))
-  if (!nicknameValidateResult.success) throw new ValidationError(nicknameValidateResult, "nickname");
-  const passwordValidateResult = validateByRules(req.body.password, rules.createPasswordRules('basic', false));
-  if (!passwordValidateResult.success) throw new ValidationError(passwordValidateResult, "password");
-  //Account***
-  const findAccount = await User.findOne({ account: req.body.account });
-  if (findAccount) {
-    throw new ValidationObjectError('accountOccupied', { accountUnavailable: req.body.account });
-  }
-  //Nickname**
-  const findNickName = await User.findOne({ nickname: req.body.nickname });
-  if (findNickName) {
-    throw new ValidationObjectError('nicknameOccupied', { nickNameUnavailable: req.body.nickname });
-  }
-  // //role***
-  // const roleCreationValidate = await validateRoleCreation(req);
-  // if (!roleCreationValidate.success) throw new ValidationError(roleCreationValidate)
-};
 
-// export async function validateRoleCreation(req) {
-//   try {
-//     const role = req.body.role;
-//     if (!(role?.length > 0)) throw new ValidationError('User role is empty');
-//     if (role != 'user') {
-//       const success = await Group.findOne({ role, users: req.body.account });
-//       if (!success) throw new ValidationError('not authorized to create this role');
-//     }
-//     return { success: true };
-//   } catch (error) {
-//     throw error;
-//   }
-// }
 
 export const validateUserChangePWD = async (req) => {
   const passwordValidateResult = validateByRules(req.body.password, rules.createPasswordRules('basic', false));
@@ -70,6 +33,42 @@ async function validAndHandleChangePWDTotalTryCount(req) {
   }
 }
 
+
+const userNameLengthMin = userConfigs.name.minLength
+const userNameLengthMax = userConfigs.name.maxLength
+
+export function validateName(name) {
+  if (checkNoValue(name)) { return }
+  const nameValidateResult = validateByRules(name, rules.createLengthBetweenRule(userNameLengthMin, userNameLengthMax))
+  if (!nameValidateResult.success) throw new ValidationObjectError("userNameBetween", { min: userNameLengthMin, max: userNameLengthMax });
+}
+const userPhoneLengthMin = userConfigs.phone.minLength
+const userPhoneLengthMax = userConfigs.phone.maxLength
+export function validatePhone(phone) {
+  if (checkNoValue(phone)) { return }
+  const phoneValidateResult = validateByRules(phone, rules.createLengthBetweenRule(userPhoneLengthMin, userPhoneLengthMax))
+  if (!phoneValidateResult.success) throw new ValidationObjectError("userPhoneBetween", { min: userPhoneLengthMin, max: userPhoneLengthMax });
+}
+const userLineIdLengthMin = userConfigs.lineId.minLength
+const userLineIdLengthMax = userConfigs.lineId.maxLength
+export function validateLineId(lineId) {
+  if (checkNoValue(lineId)) { return }
+  const lineIdValidateResult = validateByRules(lineId, rules.createLengthBetweenRule(userLineIdLengthMin, userLineIdLengthMax))
+  if (!lineIdValidateResult.success) throw new ValidationObjectError("userLineIdBetween", { min: userLineIdLengthMin, max: userLineIdLengthMax });
+}
+
+const userOthersLengthMin = userConfigs.others.minLength
+const userOthersLengthMax = userConfigs.others.maxLength
+export function validateOthers(others) {
+  if (checkNoValue(others)) { return }
+  const othersValidateResult = validateByRules(others, rules.createLengthBetweenRule(userOthersLengthMin, userOthersLengthMax))
+  if (!othersValidateResult.success) throw new ValidationObjectError("userOthersBetween", { min: userOthersLengthMin, max: userOthersLengthMax });
+}
+
+
+function checkNoValue(value) {
+  return (value === null || value === undefined)
+}
 // // //*** */
 // const errorStages = [
 //   { waitTime: 2, limitMultiplier: 1 },

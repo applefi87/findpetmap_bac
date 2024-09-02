@@ -9,7 +9,7 @@ import sendEmailService from '../services/externalServices/sendEmailService.js';
 import emailService from '../services/emailService.js'
 import userService from '../services/userService.js'
 import { pickJwtSignature } from '../utils/formatters/stringFormatter.js'
-import { validateUserRegistration, validateUserChangePWD } from '../utils/validator/userValidator.js'
+import {  validateUserChangePWD } from '../utils/validator/userValidator.js'
 
 const jwtExpirationConfig = { expiresIn: '12000 minutes' }
 // const jwtExpirationConfig = { expiresIn: '5 seconds' }
@@ -26,15 +26,23 @@ const retryDelays = {
 //***************************************************************** */
 export const register = async (req, res, next) => {
   const session = await mongoose.startSession();
+  const { password, account, nickname, info } = req.body
+  const { name, phone, lineId, others } = (info || {})
+
   try {
     session.startTransaction();
-    await validateUserRegistration(req);
     const now = Date.now()
     const newUser = {
-      account: req.body.account,
-      nickname: req.body.nickname,
-      role: req.body.role,
-      password: bcrypt.hashSync(req.body.password, 8),
+      account: account,
+      nickname: nickname,
+      role: "1",
+      password: bcrypt.hashSync(password, 8),
+      info: {
+        name: name,
+        phone: phone,
+        lineId: lineId,
+        others: others
+      },
       safety: { nextTryAvailableAt: now + baseTryWaitTimeMilliscond }
     };
     const [result] = await userService.createUserSession(newUser, session);
