@@ -25,12 +25,12 @@ const phone = {
   maxLength: 20
 }
 const lineId = {
-  minLength: 4,
+  minLength: 0,
   maxLength: 20
 }
 
 const others = {
-  minLength: 1,
+  minLength: 0,
   maxLength: 200
 }
 

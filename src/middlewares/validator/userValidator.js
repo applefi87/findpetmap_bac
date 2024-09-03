@@ -40,7 +40,7 @@ const nicknameMaxLength = userConfigs.nickname.maxLength
 export const validateUserRegistration = async (req, res, next) => {
   const { password, account, nickname, info } = req.body
   const { name, phone, lineId, others } = (info || {})
-  const mustInputFields = { password, account, nickname, name, phone, lineId, others };
+  const mustInputFields = { password, account, nickname, name, phone };
   validAllFieldsPresent(mustInputFields)
   //basic validation
   const accountValidateResult = validateByRules(account, rules.createAccountRules(accountMinLength, accountMaxLength))
@@ -70,7 +70,18 @@ export const validateUserRegistration = async (req, res, next) => {
   // const roleCreationValidate = await validateRoleCreation(req);
   // if (!roleCreationValidate.success) throw new ValidationError(roleCreationValidate)
 };
+export const validateUserUpdateInfo = async (req, res, next) => {
+  const { info } = req.body
+  const { name, phone, lineId, others } = (info || {})
+  const mustInputFields = { name, phone };
+  validAllFieldsPresent(mustInputFields)
 
+  userValidator.validateName(name)
+  userValidator.validatePhone(phone)
+  userValidator.validateLineId(lineId)
+  userValidator.validateOthers(others)
+  next()
+};
 
 
 function validAllFieldsPresent(fields) {

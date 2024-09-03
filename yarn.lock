@@ -2278,10 +2278,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"an-validator@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "an-validator@npm:3.0.0"
-  checksum: 10c0/33a4401d33d73e0f4da4278771903eebac47d5505dc60ebee45410051ce4874ec13c681c0b6d418e3623d49a78214adbb5f33b11513d9d60630d72e5fd795f4b
+"an-validator@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "an-validator@npm:3.1.0"
+  checksum: 10c0/82c3bc2803eaec4582ec883d541957817f1f66a66042fdc5146c49759dc5dca4767516d2f09ecccbad83124fb3853993db1692dc60a0b0c518d60a074c86e214
   languageName: node
   linkType: hard
 
@@ -4367,7 +4367,7 @@ __metadata:
     "@aws-sdk/client-cloudwatch-logs": "npm:^3.598.0"
     "@aws-sdk/client-s3": "npm:^3.620.0"
     "@aws-sdk/lib-storage": "npm:^3.633.0"
-    an-validator: "npm:^3.0.0"
+    an-validator: "npm:^3.1.0"
     bcrypt: "npm:^5.1.1"
     chai: "npm:^5.1.1"
     cheerio: "npm:^1.0.0-rc.12"

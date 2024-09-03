@@ -9,7 +9,7 @@ import sendEmailService from '../services/externalServices/sendEmailService.js';
 import emailService from '../services/emailService.js'
 import userService from '../services/userService.js'
 import { pickJwtSignature } from '../utils/formatters/stringFormatter.js'
-import {  validateUserChangePWD } from '../utils/validator/userValidator.js'
+import { validateUserChangePWD } from '../utils/validator/userValidator.js'
 
 const jwtExpirationConfig = { expiresIn: '12000 minutes' }
 // const jwtExpirationConfig = { expiresIn: '5 seconds' }
@@ -112,10 +112,7 @@ async function updateUserJWT(req) {
   await req.user.save();
   return token;
 };
-//***************************************************************** */
-export const getMyInfo = async (req, res, next) => {
-  ResponseHandler.successObject(res, '', req.user.info);
-};
+
 //***************************************************************** */
 export const logout = async (req, res, next) => {
   req.user.tokens = req.user.tokens.filter(token => token !== req.jwtSignature)
@@ -154,4 +151,36 @@ function getResetPWDMainTitleInI18n(res) {
 function getResetPWDMainContentInI18n(res, newPWD) {
   return res.__(`mail.resetPWDContent`, { newPWD })
 }
+//***************************************************************** */
+export const getMyInfo = async (req, res, next) => {
+  const result = { info: req.user.info }
+  ResponseHandler.successObject(res, '', result);
+};
+
+export const updateInfo = async (req, res, next) => {
+  const { info } = req.body
+  const { name, phone, lineId, others } = (info || {})
+  const updateData = {
+    info: {
+      name: name,
+      phone: phone,
+      lineId: lineId,
+      others: others
+    }
+  };
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    await userService.updateUserByIdSession(req.user._id, updateData, session);
+    await session.commitTransaction();
+    ResponseHandler.successObject(res, 'userInfoUpdated');
+  } catch (error) {
+    await session.abortTransaction();
+    throw error
+  } finally {
+    await session.endSession();
+  }
+}
+
+
 //***************************************************************** */
