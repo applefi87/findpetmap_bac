@@ -66,8 +66,8 @@ const getArticleById = async (id, selectString = undefined, isLean = false) => {
 const getArticle = async (findBy, selectString = undefined, option = {}, isLean = false) => {
   try {
     return await Article.findOne(findBy, selectString, option).populate({
-      path: 'user', // This assumes `user` is the reference field in the `Article` model
-      select: 'nickname info.contactInfo', // Select specific fields from the UserModel
+      path: 'user',
+      select: 'nickname info', 
     }).lean(isLean)
   } catch (error) {
     throw new DatabaseError(error, findBy)
