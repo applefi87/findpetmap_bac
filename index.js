@@ -15,15 +15,13 @@ app.all('(.*)', (req, res) => { throw new PageNotFoundError(req.url) });
 app.use(ResponseHandler.errorHandler);
 
 const port = process.env.PORT || 4000;
-
-const options = {
-  key: fs.readFileSync('./cert/key.pem'),
-  cert: fs.readFileSync('./cert/cert.pem')
-};
-
 let server
 if (process.env.NODE_ENV === 'development') {
-  server = https.createServer(options, app).listen(port, () => {
+  // 放這避免正式機跑到卻沒檔案
+  server = https.createServer({
+    key: fs.readFileSync('./cert/key.pem'),
+    cert: fs.readFileSync('./cert/cert.pem')
+  }, app).listen(port, () => {
     console.log('HTTPS Server running on port ' + port);
   });
 } else if (process.env.NODE_ENV === 'production') {
@@ -101,7 +99,7 @@ const generateRandomLocations = () => {
 //   });
 // update all image  isDelte = false
 // await Image.updateMany({},{ $set: { isDelete: false } })
-// 
+//
 
 // //**** */
 // const io = new Server(server, { cors: corsOption });

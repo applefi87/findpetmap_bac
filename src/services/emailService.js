@@ -1,5 +1,5 @@
 import Email from '../models/emailModel.js'
-import emailRepository from '../repositories/emailrepository.js'
+import emailRepository from '../repositories/emailRepository.js'
 import DatabaseError from '../infrastructure/errors/DatabaseError.js';
 
 const getEmailByName = async (email, selectString) => {
