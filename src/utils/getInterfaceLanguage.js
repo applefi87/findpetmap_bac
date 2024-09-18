@@ -1,4 +1,4 @@
-import { languageValues } from "../infrastructure/configs/languageOptions.js";
+import { languageValues, defaultLanguage } from "../infrastructure/configs/languageOptions.js";
 
 const getPrimaryLanguageCode = (lang) => lang.split('-')[0];
 
@@ -28,7 +28,7 @@ const matchedInterfaceLanguage = (acceptedLanguages) => {
       return primaryCode.length == 5 ? primaryCode : match
     }
   }
-  return 'en-US'; // Default to 'en-US' if no match is found
+  return defaultLanguage; // Default to defaultLanguage if no match is found
 };
 
 // Cookie should store as "en-US", not "en"
@@ -54,7 +54,7 @@ export default function getInterfaceLanguage(req = null) {
     return matchedInterfaceLanguage(acceptedLanguages);
   } catch (error) {
     console.error('Error determining interface language:', error);
-    return 'en-US'; // Fallback to default language in case of an error
+    return defaultLanguage; // Fallback to default language in case of an error
   }
 }
 

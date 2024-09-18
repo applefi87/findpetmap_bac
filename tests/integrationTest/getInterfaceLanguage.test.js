@@ -1,6 +1,7 @@
 import request from 'supertest';
 import { expect } from 'chai';
 import app from '../testApp.js'; 
+import { defaultLanguage } from '../../src/infrastructure/configs/languageOptions.js';
 
 describe('GET /interface-language', () => {
   
@@ -30,7 +31,7 @@ describe('GET /interface-language', () => {
   it('should return default language if no match is found', async () => {
     const res = await request(app)
       .get('/interface-language')
-      .set('Accept-Language', 'zh');
-    expect(res.body.interfaceLanguage).to.equal('zh-TW');
+      .set('Accept-Language', 'zx');
+    expect(res.body.interfaceLanguage).to.equal(defaultLanguage);
   });
 });

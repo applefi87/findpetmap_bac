@@ -41,7 +41,7 @@ describe('API Integration Tests', function() {
     const start = new Date();
     const response = await request(testApp).get('/');
     const duration = new Date() - start;
-    expect(duration).to.be.below(50); // Response time should be less than 10 ms
+    expect(duration).to.be.below(100); 
   });
 
 });

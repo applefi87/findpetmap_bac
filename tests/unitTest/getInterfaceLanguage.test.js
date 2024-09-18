@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import getInterfaceLanguage from '../../src/utils/getInterfaceLanguage.js';
+import { defaultLanguage } from '../../src/infrastructure/configs/languageOptions.js';
 
 describe('getInterfaceLanguage', function() {
   it('should return the language from the cookie if present on the server', function() {
@@ -38,6 +39,6 @@ describe('getInterfaceLanguage', function() {
 
   it('should return default language if no match is found', function() {
     global.navigator = { languages: ['es'] };
-    expect(getInterfaceLanguage()).to.equal('en-US');
+    expect(getInterfaceLanguage()).to.equal(defaultLanguage);
   });
 });

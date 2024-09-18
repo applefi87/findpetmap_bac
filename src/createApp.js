@@ -32,9 +32,9 @@ const createApp = () => {
 
   const corsOption = {
     origin: (origin, callback) => {
-      const corsCheck = process.env.NODE_ENV === 'main'
-        ? origin && (origin.startsWith('https://www.knowforum.com') || origin.startsWith('https://knowforum.com'))
-        : (origin === undefined || origin === 'https://tipspert.onrender.com' || origin === 'http://localhost:9100' || true);
+      const corsCheck = process.env.NODE_ENV === 'production'
+        ? origin && (origin.startsWith('https://www.findpetmap.com') || origin.startsWith('https://findpetmap.com'))
+        : (origin === undefined || origin === 'http://localhost:9100' || true);
       if (corsCheck) {
         callback(null, true);
       } else {
