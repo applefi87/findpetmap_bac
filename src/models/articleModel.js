@@ -112,6 +112,12 @@ const schema = new mongoose.Schema({
     minLength: [articleConfigs.content.minLength, `必須 ${articleConfigs.content.minLength} 個字以上`],
     maxLength: [articleConfigs.content.maxLength, `必須 ${articleConfigs.content.maxLength} 個字以下`],
   },
+  //路徑+檔名
+  previewImageFullPath: {
+    type: String,
+    required: false, // 應該要有，但沒有不希望影響系統其他功能
+    maxlength: [80, 'fileName longer than 50!'],
+  },
   isDelete: {
     type: Boolean,
     default: false

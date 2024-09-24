@@ -14,39 +14,39 @@ export const generateGetArticleListPipeline = (bottomLeft, topRight, filter, ski
         ...filter,
       },
     },
-    {
-      $lookup: {
-        // 只能小寫+複數
-        from: 'previewimages',
-        let: { articleId: '$_id' },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $and: [
-                  { $eq: ['$resource', '$$articleId'] }, // Ensure articleId is treated as ObjectId
-                  { $eq: ['$isDelete', false] }, 
-                ],
-              },
-            },
-          },
-          {
-            $limit: 1,
-          },
-          {
-            $project: {
-              fullPath: 1,
-            },
-          },
-        ],
-        as: 'previewImage',
-      },
-    },
-    {
-      $addFields: {
-        previewImage: { $arrayElemAt: ['$previewImage.fullPath', 0] }, // Extract the top image from the array
-      },
-    },
+    // {
+    //   $lookup: {
+    //     // 只能小寫+複數
+    //     from: 'previewimages',
+    //     let: { articleId: '$_id' },
+    //     pipeline: [
+    //       {
+    //         $match: {
+    //           $expr: {
+    //             $and: [
+    //               { $eq: ['$resource', '$$articleId'] }, // Ensure articleId is treated as ObjectId
+    //               { $eq: ['$isDelete', false] }, 
+    //             ],
+    //           },
+    //         },
+    //       },
+    //       {
+    //         $limit: 1,
+    //       },
+    //       {
+    //         $project: {
+    //           fullPath: 1,
+    //         },
+    //       },
+    //     ],
+    //     as: 'previewImage',
+    //   },
+    // },
+    // {
+    //   $addFields: {
+    //     previewImage: { $arrayElemAt: ['$previewImage.fullPath', 0] }, // Extract the top image from the array
+    //   },
+    // },
     {
       $project: {
         _id: 1,
@@ -59,7 +59,7 @@ export const generateGetArticleListPipeline = (bottomLeft, topRight, filter, ski
         lostCityCode: 1,
         lostDistrict: 1,
         title: 1,
-        previewImage: 1,
+        previewImageFullPath: 1,
         location: 1,
       },
     },

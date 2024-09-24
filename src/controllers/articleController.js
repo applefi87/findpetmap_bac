@@ -86,12 +86,15 @@ export async function updateArticle(req, res) {
       // 1.
       const isPreviewImage = req.updateImageList.find(image => image.isPreview);
       if (isPreviewImage) {
-        const originalImage = await imageService.findImageByIdSession(isPreviewImage.id, "isPreview fullPath", true);
-        // 意外情況，用戶說有圖片但沒有，也不報錯持接跳過
-        if (originalImage) {
+
+        const newIsPreviewImage = await imageService.findImageByIdSession(isPreviewImage.id, "isPreview fullPath", true);
+        // 意外情況，用戶說有圖片id但沒有，不用報錯直接跳過
+        if (newIsPreviewImage) {
+          const previewFullPath = newIsPreviewImage.fullPath.replace("original/", "preview/");
+          // 原本就是預覽圖，不用做任何事
+          if (newIsPreviewImage.isPreview) { ; }
           // 2. 
-          if (!originalImage.isPreview) {
-            const previewFullPath = originalImage.fullPath.replace("original/", "preview/");
+          else {
             const previewImage = await previewImageService.findPreviewImageIgnoreDeleteByfullPath(previewFullPath)
             // 4.
             if (previewImage) {
@@ -101,9 +104,10 @@ export async function updateArticle(req, res) {
             } else {
               // 3.
               await previewImageService.handlePreviewImage(strArticleId, isPreviewImage.id, previewFullPath, session)
-              await s3Service.processAndUploadImage(originalImage.fullPath, previewFullPath);
+              await s3Service.processAndUploadImage(newIsPreviewImage.fullPath, previewFullPath);
             }
           }
+          articleService.setArticlePreviewImageFullPath(strArticleId, previewFullPath, session)
         }
       }
       await imageService.bulkUpdateImageListByIdSetPreview(req.updateImageList, session)
@@ -177,6 +181,14 @@ export const searchArticleList = async (req, res, next) => {
     const articles = await articleService.getArticleList(adjustedBottomLeft, adjustedTopRight, formatedFilter, skip, limit, req.user?._id.toString());
 
     return ResponseHandler.successObject(res, "", { articles: articles, region: { bottomLeft: adjustedBottomLeft, topRight: adjustedTopRight } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const searchMyArticle = async (req, res, next) => {
+  try {
+    return ResponseHandler.successObject(res, "", await articleService.getUserArticle(req.user?._id.toString()));
   } catch (error) {
     next(error);
   }

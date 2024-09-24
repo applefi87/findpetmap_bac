@@ -13,33 +13,6 @@ async function aggregate(pipeline) {
   }
 }
 
-async function getArticleByIdBoardPopulateUserBoard(strArticleId, strBoardId, articleSelectString = undefined, userSelectString = undefined, boardSelectString = undefined, needLean = false) {
-  try {
-    if (!mongoose.Types.ObjectId.isValid(strArticleId)) { return null }
-    let query = Article.findById(strArticleId, articleSelectString)
-      .where("isDelete").equals(false);
-    if (mongoose.Types.ObjectId.isValid(strBoardId)) {
-      query = query.where("board").equals(new mongoose.Types.ObjectId(strBoardId));
-    }
-    if (userSelectString) {
-      query = query.populate("user", userSelectString);
-    }
-    if (boardSelectString) {
-      query = query.populate({
-        path: "board",
-        select: boardSelectString,
-        // match: { isDelete: false }, // Add condition to populate only non-deleted boards
-      });
-    }
-    if (needLean) {
-      query = query.lean();
-    }
-    return await query.exec();
-  } catch (error) {
-    throw new DatabaseError(error, strArticleId)
-  }
-}
-
 async function createArticle(article, options) {
   try {
     return await Article.create(article, options)
@@ -56,6 +29,15 @@ async function findByIdAndUpdate(id, updateData, options) {
   }
 }
 
+const getUserArticle = async (userId, selectString = undefined, isLean = false) => {
+  try {
+    if (!userId) { return [] }
+    return await Article.find({ user: userId }, selectString).lean(isLean)
+  } catch (error) {
+    throw new DatabaseError(error, userId)
+  }
+}
+
 const getArticleById = async (id, selectString = undefined, isLean = false) => {
   try {
     return await getArticle({ _id: id }, selectString, {}, isLean)
@@ -63,11 +45,12 @@ const getArticleById = async (id, selectString = undefined, isLean = false) => {
     throw new DatabaseError(error, id)
   }
 }
+
 const getArticle = async (findBy, selectString = undefined, option = {}, isLean = false) => {
   try {
     return await Article.findOne(findBy, selectString, option).populate({
       path: 'user',
-      select: 'nickname info', 
+      select: 'nickname info',
     }).lean(isLean)
   } catch (error) {
     throw new DatabaseError(error, findBy)
@@ -76,4 +59,4 @@ const getArticle = async (findBy, selectString = undefined, option = {}, isLean 
 
 
 
-export default { aggregate, getArticleByIdBoardPopulateUserBoard, createArticle, findByIdAndUpdate, getArticleById }
+export default { aggregate, createArticle, findByIdAndUpdate, getArticleById, getUserArticle }

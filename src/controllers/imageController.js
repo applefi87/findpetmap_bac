@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import imageService from '../services/imageService.js'
+import articleService from '../services/articleService.js'
 import previewImageService from '../services/previewImageService.js'
 import s3Service from '../services/s3Service.js'
 import generateFullPath from '../utils/string/generateDateFileName.js'
@@ -27,10 +28,7 @@ export async function saveImage(req, res, next) {
   let originalFullPath;
   let previewFullPath;
   let newImage
-  const { buffer, mimetype } = req.file;
-  const format = mimetype.split('/')[1];
-  // 先跑，因為最常是檔案類型有問題
-  const originalImageBuffer = await processImage(buffer, format);
+  // 先跑存進資料庫，因為最常是檔案類型有問題
   try {
     let errTimes = 0
     while (!isSuccessCreatedImage) {
@@ -44,10 +42,11 @@ export async function saveImage(req, res, next) {
         session = await mongoose.startSession();
         session.startTransaction();
         [newImage] = await imageService.createImageSession(newImageObj, session);
-        // **預覽圖(如果有需要)**
+        // **預覽圖**
         if (req.isPreview) {
           previewFullPath = `preview/${preFullPath}`;
           await previewImageService.handlePreviewImage(strArticleId, newImage._id.toString(), previewFullPath, session)
+          articleService.setArticlePreviewImageFullPath(strArticleId, previewFullPath, session)
         }
         // 反正有問題會直接報錯，不會跑到這
         isSuccessCreatedImage = newImage
@@ -60,6 +59,10 @@ export async function saveImage(req, res, next) {
         if (errTimes > 10) { throw error }
       }
     }
+    // **上方都是記錄進資料庫，成功檔案才存進S3)**
+    const { buffer, mimetype } = req.file;
+    const format = mimetype.split('/')[1];
+    const originalImageBuffer = await processImage(buffer, format);
     await s3Service.uploadImage(originalFullPath, originalImageBuffer);
     if (req.isPreview) {
       const previewImageBuffer = await processImage(buffer, format, true);
