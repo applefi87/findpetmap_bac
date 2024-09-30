@@ -68,7 +68,7 @@ export async function saveImage(req, res, next) {
       const previewImageBuffer = await processImage(buffer, format, true);
       await s3Service.uploadImage(previewFullPath, previewImageBuffer);
     }
-    ResponseHandler.successObject(res, "", newImage, 201);
+    ResponseHandler.successObject(res, "", undefined, 201);
     await session.commitTransaction();
   } catch (error) {
     // 因為如果 while  那段有問題，就不能再跑 abort
