@@ -40,7 +40,7 @@ export const jwt = (sqlSelect) => {
           return res.status(401).send(401)
         } else {
           //來這應該是系統異常錯誤，雖一樣無法下一步，但會被系統log
-          return next(err)
+          throw err
         }
       }
       req.user = data.user
