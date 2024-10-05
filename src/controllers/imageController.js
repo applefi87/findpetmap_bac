@@ -15,6 +15,7 @@ import { processImage } from '../utils/image.js';
 // import { filterUniqueStringArray } from '../infrastructure/utils/stringTool.js'
 
 export async function saveImage(req, res, next) {
+  console.log("saveImage");
   const strArticleId = req.params.id
   const newImageObj = {
     fullPath: "",
@@ -29,6 +30,7 @@ export async function saveImage(req, res, next) {
   let previewFullPath;
   let newImage
   // 先跑存進資料庫，因為最常是檔案類型有問題
+  console.log("saveImage start");
   try {
     let errTimes = 0
     while (!isSuccessCreatedImage) {
@@ -59,24 +61,35 @@ export async function saveImage(req, res, next) {
         if (errTimes > 10) { throw error }
       }
     }
+    console.log("created DB");
     // **上方都是記錄進資料庫，成功檔案才存進S3)**
     const { buffer, mimetype } = req.file;
     const format = mimetype.split('/')[1];
+    console.log("processImage originalImageBuffer");
     const originalImageBuffer = await processImage(buffer, format);
+    console.log("processImage originalImageBuffer end");
+    console.log("uploadImage originalImageBuffer");
     await s3Service.uploadImage(originalFullPath, originalImageBuffer);
     if (req.isPreview) {
+      console.log("processImage previewImageBuffer");
       const previewImageBuffer = await processImage(buffer, format, true);
+      console.log("processImage previewImageBuffer end");
+      console.log("uploadImage previewImageBuffer");
       await s3Service.uploadImage(previewFullPath, previewImageBuffer);
+      console.log("uploadImage previewImageBuffer end");
     }
+    console.log("uploadImage originalImageBuffer end");
     ResponseHandler.successObject(res, "", undefined, 201);
     await session.commitTransaction();
   } catch (error) {
+    console.log("saveImage error", error);
     // 因為如果 while  那段有問題，就不能再跑 abort
     if (session?.inTransaction()) {
       await session.abortTransaction();
     }
     throw error;
   } finally {
+    console.log("saveImage finally");
     // 因為如果 while  那段有問題，就不能再跑 end
     if (session && !session.hasEnded) {
       await session.endSession();

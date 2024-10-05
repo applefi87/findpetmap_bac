@@ -9,10 +9,12 @@ import UnknownError from '../infrastructure/errors/UnknownError.js'
 //Enter here must have req.user._id
 export default (resourceType, selectString = null) => {
   return async (req, res, next) => {
+    console.log("getResourseAndIsOwner");
     if (!req.user._id) throw new UnknownError(null, "middlewares getResourseAndIsOwner no req.user._id")
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) throw new ValidationObjectError("noFound")
     let resourceModel
     const finalSelectSrting = selectString ? (selectString + " user") : undefined
+    console.log("resourceType", resourceType);
     switch (resourceType) {
       case "Article":
         resourceModel = Article
@@ -29,6 +31,7 @@ export default (resourceType, selectString = null) => {
     //     throw new UnknownError(null, "middlewares getResourseAndIsOwner no unknown resourceType")
     }
     const resource = await resourceModel.findById(req.params.id, finalSelectSrting).where("user").equals(req.user._id.toString()).where("isDelete").equals(false);
+    console.log("resource", resource);
     if (!resource) throw new ValidationObjectError("noFound")
     req.resource = resource
     next()

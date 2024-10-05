@@ -22,6 +22,7 @@ export const login = (sqlSelect) => {
 
 export const jwt = (sqlSelect) => {
   return (req, res, next) => {
+    console.log("jwt");
     req.sqlSelect = sqlSelect ? sqlSelect + " tokens" : "_id nickname account score info tokens role"
     passport.authenticate('jwt', { session: false }, (err, data, info) => {
       if (err || !data) {
@@ -44,7 +45,7 @@ export const jwt = (sqlSelect) => {
       }
       req.user = data.user
       req.jwtSignature = data.jwtSignature
-      // console.log("auth passed");
+      console.log("auth passed");
       next()
     })(req, res, next)
   }
