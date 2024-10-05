@@ -17,9 +17,9 @@ const handleSingleImageUpload = (req, res, next) => {
     console.log("uploadSingleImage");
     if (err) {
       if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_COUNT') {
-        next(new ValidationObjectError('uploadOnlyOneImage'));
+        throw new ValidationObjectError('uploadOnlyOneImage')
       } else {
-        next(new UnknownError(err, "handleSingleImageUpload middleware error"));
+        throw new UnknownError(err, "handleSingleImageUpload middleware error")
       }
     } else {
       next();

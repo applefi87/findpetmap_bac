@@ -19,18 +19,24 @@ export default (resourceType, selectString = null) => {
       case "Article":
         resourceModel = Article
         break;
-    //   case "Comment":
-    //     resourceModel = Comment
-    //     break;
-    //   case "Reply":
-    //     resourceModel = Reply
-    //     // case "BoardCreateReq":
-    //     //   resourceModel = BoardCreateRequest
-    //     break;
-    //   default:
-    //     throw new UnknownError(null, "middlewares getResourseAndIsOwner no unknown resourceType")
+      //   case "Comment":
+      //     resourceModel = Comment
+      //     break;
+      //   case "Reply":
+      //     resourceModel = Reply
+      //     // case "BoardCreateReq":
+      //     //   resourceModel = BoardCreateRequest
+      //     break;
+      //   default:
+      //     throw new UnknownError(null, "middlewares getResourseAndIsOwner no unknown resourceType")
     }
-    const resource = await resourceModel.findById(req.params.id, finalSelectSrting).where("user").equals(req.user._id.toString()).where("isDelete").equals(false);
+    const resource = await resourceModel
+      .findById(req.params.id)
+      .select(finalSelectSrting)
+      .where('user')
+      .equals(req.user._id.toString())
+      .where('isDelete')
+      .equals(false);
     console.log("resource", resource);
     if (!resource) throw new ValidationObjectError("noFound")
     req.resource = resource
