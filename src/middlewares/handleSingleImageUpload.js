@@ -12,9 +12,7 @@ const uploadSingleImage = multer({
 }).single('image');
 
 const handleSingleImageUpload = (req, res, next) => {
-  console.log("handleSingleImageUpload");
   uploadSingleImage(req, res, function (err) {
-    console.log("uploadSingleImage");
     if (err) {
       if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_COUNT') {
         throw new ValidationObjectError('uploadOnlyOneImage')
@@ -25,7 +23,6 @@ const handleSingleImageUpload = (req, res, next) => {
       next();
     }
   });
-  console.log("after uploadSingleImage");
 };
 
 export default handleSingleImageUpload;

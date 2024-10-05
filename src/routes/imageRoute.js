@@ -2,7 +2,7 @@ import express from 'express';
 import content from '../middlewares/content.js'
 import * as auth from '../middlewares/auth.js'
 import handleSingleImageUpload from '../middlewares/handleSingleImageUpload.js'
-import { validateArticleImageCountAndNoIsPreview } from '../middlewares/validator/imageValidator.js'
+import { validateArticleImageCountAndNoIsPreview} from '../middlewares/validator/imageValidator.js'
 import getOwnerResourse from '../middlewares/getOwnerResourse.js'
 import { saveImage } from '../controllers/imageController.js';
 const router = express.Router();
@@ -27,6 +27,6 @@ const router = express.Router();
 // 最慘是新圖
 
 // in {isPreview } req.body, file*,id*
-router.post('/upload/article/:id', content('multipart/form-data'), auth.jwt("_id"), getOwnerResourse("Article", "_id"), handleSingleImageUpload, validateArticleImageCountAndNoIsPreview, saveImage);
+router.post('/upload/article/:id', content('multipart/form-data'), auth.jwt("_id"), getOwnerResourse("Article", "_id"), handleSingleImageUpload,validateArticleImageCountAndNoIsPreview,  saveImage);
 
 export default router;
