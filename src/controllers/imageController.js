@@ -1,4 +1,7 @@
 import mongoose from 'mongoose';
+import { trusted } from 'mongoose'
+import Image from '../models/imageModel.js'
+import PreviewImage from '../models/previewImageModel.js'
 import imageService from '../services/imageService.js'
 import articleService from '../services/articleService.js'
 import previewImageService from '../services/previewImageService.js'
@@ -85,6 +88,66 @@ export async function saveImage(req, res, next) {
 }
 
 
+export async function clearOldDeletedImages(req, res, next) {
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const stringOneWeekAgo = oneWeekAgo.toLocaleDateString();
+    // Find images to delete
+    const imagesToDelete = await Image.find({
+      isDelete: true,
+      updatedAt: trusted({ $lte: stringOneWeekAgo }) // Ensure it's passed as a Date
+    }).session(session);
+    // Find preview images to delete
+    const previewImagesToDelete = await PreviewImage.find({
+      isDelete: true,
+      updatedAt: trusted({ $lte: stringOneWeekAgo }), // Ensure it's passed as a Date
+    }).session(session);
+
+    // If no images to delete, respond accordingly
+    if (imagesToDelete.length === 0 && previewImagesToDelete.length === 0) {
+      await session.commitTransaction();
+      session.endSession();
+      return res.status(200).json({ message: 'No images to delete.' });
+    }
+
+    // Delete images
+    await deleteImages(imagesToDelete, Image, session);
+    await deleteImages(previewImagesToDelete, PreviewImage, session);
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.status(200).json({ message: 'Old deleted images have been cleaned up.' });
+  } catch (error) {
+    // Rollback transaction if any error occurs
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
+    session.endSession();
+    console.error('Error during image cleanup:', error);
+    return res.status(500).json({ error: 'An error occurred while cleaning up images.' });
+  }
+}
+// Helper function to delete images
+const deleteImages = async (images, Model, session) => {
+  // Process deletions in parallel
+  const deletePromises = images.map(async (image) => {
+    // Delete image from S3
+    const s3DeleteResult = await s3Service.deleteImage(image.fullPath);
+    if (!s3DeleteResult) {
+      throw new Error(`Failed to delete image from S3: ${image.fullPath}`);
+    }
+    console.log(`Deleted image from S3: ${image.fullPath}`);
+    // Remove the image record from the database
+    await Model.deleteOne({ _id: image._id }).session(session);
+  });
+
+  // Wait for all deletions to complete
+  await Promise.all(deletePromises);
+};
 // export function refreshDraftImageList(type) {
 //   return async function (req, res, next) {
 //     let target = await getOrCreateSomeDraft(type, req)

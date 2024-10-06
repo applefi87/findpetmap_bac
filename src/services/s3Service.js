@@ -33,15 +33,6 @@ class S3Service {
     return `https://${this.bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${fullPath}`;
   }
 
-  async deleteImage(fullPath) {
-    const params = {
-      Bucket: this.bucketName,
-      Key: `${fullPath}`,
-    };
-    await s3Client.send(new DeleteObjectCommand(params));
-    return true;
-  }
-
   async processAndUploadImage(originalFullPath, previewFullPath) {
     const getObjectParams = {
       Bucket: this.bucketName,
@@ -65,6 +56,20 @@ class S3Service {
     await upload.done();
     return `https://${this.bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/${previewFullPath}`;
   }
+
+  async deleteImage(key) {
+    try {
+      const params = {
+        Bucket: this.bucketName,
+        Key: key,
+      };
+      await s3Client.send(new DeleteObjectCommand(params));
+      return true; // Indicate successful deletion
+    } catch (error) {
+      throw new UnknownError(error, "src/services/s3Service.js - deleteImage");
+    }
+  }
+
 }
 
 
