@@ -16,12 +16,12 @@ const nickname = {
 }
 
 const name = {
-  minLength: 2,
+  minLength: 0,
   maxLength: 20
 }
 
 const phone = {
-  minLength: 7,
+  minLength: 0,
   maxLength: 20
 }
 const lineId = {
