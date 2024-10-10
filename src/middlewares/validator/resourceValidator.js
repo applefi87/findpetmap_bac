@@ -54,7 +54,8 @@ export const validateUpdateArticle = (req, res, next) => {
 };
 
 export const validateSearchArticleList = async (req, res, next) => {
-  const { bottomLeft, topRight, skip, limit, petType, color, gender, age, breed, size, lostDate, lostCityCode, lostDistrict, hasReward, rewardAmount, hasMicrochip } = req.body;
+  const { bottomLeft, topRight, filter } = req.body;
+  const { skip, limit, petType, color, gender, age, breed, size, lostDate, lostCityCode, lostDistrict, hasReward, rewardAmount, hasMicrochip } = filter
 
   const mustInputFields = { bottomLeft, topRight };
   validAllFieldsPresent(mustInputFields);
