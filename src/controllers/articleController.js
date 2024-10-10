@@ -107,7 +107,7 @@ export async function updateArticle(req, res) {
               await s3Service.processAndUploadImage(newIsPreviewImage.fullPath, previewFullPath);
             }
           }
-          articleService.setArticlePreviewImageFullPath(strArticleId, previewFullPath, session)
+          await articleService.setArticlePreviewImageFullPath(strArticleId, previewFullPath, session)
         }
       }
       await imageService.bulkUpdateImageListByIdSetPreview(req.updateImageList, session)

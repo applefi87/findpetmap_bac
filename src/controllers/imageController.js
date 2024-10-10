@@ -49,7 +49,7 @@ export async function saveImage(req, res, next) {
         if (req.isPreview) {
           previewFullPath = `preview/${preFullPath}`;
           await previewImageService.handlePreviewImage(strArticleId, newImage._id.toString(), previewFullPath, session)
-          articleService.setArticlePreviewImageFullPath(strArticleId, previewFullPath, session)
+          await articleService.setArticlePreviewImageFullPath(strArticleId, previewFullPath, session)
         }
         // 反正有問題會直接報錯，不會跑到這
         isSuccessCreatedImage = newImage
