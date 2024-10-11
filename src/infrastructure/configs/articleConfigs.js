@@ -113,7 +113,7 @@ const age = {
 const region = {
   // 減少 api 次數，多抓廣一些的範圍
   bufferMultiplier: 1.5,
-  maxDistance: 70 // in km
+  maxDistance: 300 // in km
 }
 
 const search = {
