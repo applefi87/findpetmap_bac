@@ -7,7 +7,7 @@ const catColorEnum = [
   // Mixed Colors
   '黑白', '灰白', '橘白',
   // Patterned Colors
-  '玳瑁', '花斑', '虎斑'
+  '玳瑁', '花斑', '虎斑', "豹紋"
 ];
 
 const dogColorEnum = [
@@ -65,28 +65,17 @@ const dogBreedEnum = [
   '約克夏犬',       // Yorkshire Terrier
   '巴哥犬',         // Pug
   '西施犬',         // Shih Tzu
-  '喜樂蒂牧羊犬',   // Shetland Sheepdog
-  '松鼠犬',         // Pomeranian
+  '柯基犬',        
   '西高地白梗犬',   // West Highland White Terrier
   '大丹犬',         // Great Dane
   '馬爾濟斯犬',     // Maltese
-  '貝靈頓梗',       // Bedlington Terrier
-  '威瑪獵犬',       // Weimaraner
-  '巴吉度犬',       // Basset Hound
-  '惠比特犬',       // Whippet
-  '澳洲牧羊犬',     // Australian Shepherd
 
   // Mixed Breed Dogs
-  '拉布拉多混種',   // Labrador Mix
-  '金毛混種',       // Golden Retriever Mix
-  '哈士奇混種',     // Siberian Husky Mix
-  '牧羊犬混種',     // Shepherd Mix
-  '比特犬混種',     // Pit Bull Mix
-  '小型混種犬',     // Small Mixed Breed
-  '中型混種犬',     // Medium Mixed Breed
-  '大型混種犬',     // Large Mixed Breed
-  '田園犬',         // Mongrel (general term for mixed breeds, often used for local breeds)
-  '土狗'            // Native dog (local mixed breed, common in some regions)
+  '小型米克斯犬',     // Small Mixed Breed
+  '中型米克斯犬',     // Medium Mixed Breed
+  '大型米克斯犬',     // Large Mixed Breed
+  '土狗',            // Native dog (local mixed breed, common in some regions)
+  '其他',         // Mixed Breed
 ];
 
 const title = {
