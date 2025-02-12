@@ -11,7 +11,7 @@ class CloudWatchLogger {
         region: "ap-northeast-1",
         credentials: {
             accessKeyId: process.env.AWS_CLOUDWATCH_ACCESS_KEY_ID,
-            secretAccessKey: process.env.AWS_CLOUDWATCH_SECRET_ACCESS_KEY
+            secretAccessKey: process.env.AWS_CLOUDWATCH_ACCESS_KEY
         }
     });
     static logGroupName = "backend-error-log";
