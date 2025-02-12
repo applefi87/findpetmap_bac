@@ -1,9 +1,11 @@
+import { readFileSync } from 'fs';
 import CustomError from '../infrastructure/errors/CustomError.js';
 import UnknownError from '../infrastructure/errors/UnknownError.js';
 import ValidationError from '../infrastructure/errors/ValidationError.js';
-import errorCodeTable from '../../configs/generated/errors/errorCodeTable.json' assert { type: 'json' };
 import CloudWatchLogger from '../utils/CloudWatchLogger.js';
-
+const errorCodeTable = JSON.parse(
+  readFileSync(new URL('../../configs/generated/errors/errorCodeTable.json', import.meta.url), 'utf-8')
+);
 // const levelList = ["emergency", "error","notice","log","dev"];
 const needLog = ["emergency", "error"];
 
@@ -22,6 +24,7 @@ class ResponseHandler {
   }
   static successObject(res, msg, data = undefined, httpCode = 200) {
     try {
+      CloudWatchLogger.logMessage(0, "emergency", error.stack, "backend_ResponseHandler.success_Error!!");
       const message = msg.key ? res.__(msg.key, msg.params) : res.__(msg)
       return res.status(httpCode).json({
         code: 200,
