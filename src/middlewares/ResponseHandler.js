@@ -24,7 +24,6 @@ class ResponseHandler {
   }
   static successObject(res, msg, data = undefined, httpCode = 200) {
     try {
-      CloudWatchLogger.logMessage(0, "emergency", error.stack, "backend_ResponseHandler.success_Error!!");
       const message = msg.key ? res.__(msg.key, msg.params) : res.__(msg)
       return res.status(httpCode).json({
         code: 200,
